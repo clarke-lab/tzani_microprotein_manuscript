@@ -1,0 +1,8 @@
+SRR16796942.fastq.gz	nts_r1
+SRR16796941.fastq.gz	nts_r2
+SRR16796970.fastq.gz	nts_r3
+SRR16796969.fastq.gz	nts_r4
+SRR16796968.fastq.gz	ts_r1
+SRR16796967.fastq.gz	ts_r2
+SRR16796966.fastq.gz	ts_r3
+SRR16796965.fastq.gz	ts_r4

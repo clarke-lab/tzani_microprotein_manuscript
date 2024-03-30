@@ -1,0 +1,4 @@
+proteomics/raw_files/drug_product/pythoud/trastuzumab/Trastuzumab_DDA_ND.zip	'ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/10/PXD019668/Trastuzumab_DDA_ND.zip'
+proteomics/raw_files/drug_product/pythoud/trastuzumab/Trastuzumab_DDA_OLD.zip	'ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/10/PXD019668/Trastuzumab_DDA_OLD.zip'
+proteomics/raw_files/drug_product/pythoud/trastuzumab/Trastuzumab_DDA_OND.zip	'ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/10/PXD019668/Trastuzumab_DDA_OND.zip'
+proteomics/raw_files/drug_product/pythoud/trastuzumab/Trastuzumab_DDA_Semi-fractionation.zip	'ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/10/PXD019668/Trastuzumab_DDA_Semi-fractionation.zip'

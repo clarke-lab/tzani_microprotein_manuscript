@@ -1,0 +1,3 @@
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t1 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166956?token=316f8c6fae03734f04fdb7e1da88901e'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t2 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166954?token=e1a718bb63548334067a7567d3690d8b'
+proteomics/raw_files/drug_product/tzani/denosumab/t

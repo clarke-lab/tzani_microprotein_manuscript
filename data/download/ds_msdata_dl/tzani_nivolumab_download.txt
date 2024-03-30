@@ -1,0 +1,6 @@
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b1_t1 ''
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b1_t2 ''
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b1_t3 ''
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b2_t1 ''
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b2_t2 ''
+proteomics/raw_files/drug_product/tzani/nivolumab/tzani_nivolumab_b2_t3 ''
