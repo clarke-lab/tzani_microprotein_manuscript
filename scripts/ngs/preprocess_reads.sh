@@ -13,8 +13,10 @@
 # num_cores=$(getconf_NPROCESSORS_ONLN)
 # set -x
 
+source activate microprotein_process_env
+
 mkdir reference_genome
-cat data/reference_genome_files.txt | parallel -j 4 wget -P reference_genome {}
+cat data/download/reference_genome_files.txt | parallel -j 4 wget -P reference_genome {}
 gunzip reference_genome/*.gz
 
 # build the index
@@ -246,3 +248,5 @@ STAR \
 
 echo "Determing counts and read distributions"
 ./scripts/ngs/calc_read_stats.sh
+
+conda deactivate
