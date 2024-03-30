@@ -13,6 +13,10 @@
 # num_cores=$(getconf_NPROCESSORS_ONLN)
 # set -x
 
+mkdir reference_genome
+cat data/reference_genome_files.txt | parallel -j 4 wget -P reference_genome {}
+gunzip reference_genome/*.gz
+
 # build the index
 if ! [ -d reference_genome/star_index ]; then
 mkdir reference_genome/star_index && star_index=$_
@@ -26,6 +30,7 @@ STAR --runThreadN 32 \
 else 
   star_index=reference_genome/star_index
 fi
+
 # Ribo-seq
 # build indexes for contamination filtering
 srna_fasta=data/small_rna_fasta

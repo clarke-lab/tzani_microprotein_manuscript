@@ -8,7 +8,9 @@
 # bioRxiv 2022.05.18.492548.
 # 
 #
-# Author: Clarke Lab. NIBRT 
+# Author: Clarke Lab. NIBRT
+
+source activate microprotein_process_env
 
 # 1. Total RNASeq (Single-end)
 mkdir -p $PWD/sequencing/rnaseq_se/raw_data && rna_dir=$_
@@ -58,4 +60,6 @@ done
 
 echo "ND Ribo-seq downloaded"
 echo "Done"
+
+conda deactivate
 # end
