@@ -1,0 +1,9 @@
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8188NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_nd_r1.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8189NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_nd_r2.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8191NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_nd_r3.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8207NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_ond_r1.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8209NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_ond_r2.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8211NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_ond_r3.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8169NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_old_r1.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8170NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_old_r2.raw
+proteomics/raw_files/drug_product/pythoud/bevacizumab/QX8172NP.raw proteomics/raw_files/drug_product/pythoud/bevacizumab/pythoud_bevacizumab_old_r3.raw
