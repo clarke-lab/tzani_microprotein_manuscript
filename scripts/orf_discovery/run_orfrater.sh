@@ -107,7 +107,7 @@ $work_dir/sequencing/riboseq_chx/mapped/merged/riboseq_chx.bam \
 
 regress_orfs.py \
 $work_dir/sequencing/riboseq_nd/mapped/merged/riboseq_nd.bam \
---subdir $$out_dir/nd \
+--subdir $out_dir/nd \
 --orfstore $out_dir/orf.h5 \
 --inbed $out_dir/transcripts.bed \
 --restrictbystarts $out_dir/harr \
