@@ -63,6 +63,11 @@ rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
 docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest  \
 bash "/microprotein_analysis/scripts/orf_discovery/run_orfrater.sh"
 
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest bedToGenePred \
+
+
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest genePredToGTF
+
 # 6. convert orfrater BED to GTF
 /mnt/HDD2/colin/bin/kentUtils/bin/linux.x86_64/bedToGenePred \
 orf_identification/orfraterorfrater_predictions.reference.bed stdout | \
@@ -76,3 +81,9 @@ orf_identification/orfrater/orfrater_predictions.reference.gtf
 # cp orfrater_analysis/chx/metagene.txt results/metagene_profiles/chx.metagene.txt
 # cp orfrater_analysis/harr/metagene.txt results/metagene_profiles/harr.metagene.txt
 # cp orfrater_analysis/nd/metagene.txt results/metagene_profiles/nd.metagene.txt
+
+# index reference genome fasta to create TxDb in next step
+source activate microprotein_process_env
+samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
+conda deactivate
+
