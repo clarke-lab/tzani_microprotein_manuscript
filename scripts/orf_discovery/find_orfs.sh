@@ -27,10 +27,20 @@ sed s/\"//g | sed 's/[[:space:]]//g'| uniq > $orf_dir/pseudogene_transcript_ids.
 echo "$(wc -l < $orf_dir/pseudogene_transcript_ids.txt) pseduogene transcripts removed"
 
 # 2. convert NCBI gtf to genePred format 
-gtfToGenePred \
--ignoreGroupsWithoutExons -allErrors $gtf stdout | \
-genePredToBed stdin \
-$orf_dir/cgr.orfrater.annotation.tmp.bed
+
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest gtfToGenePred \
+-ignoreGroupsWithoutExons -allErrors \
+/microprotein_analysis/reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.gtf \
+/microprotein_analysis/orf_identification/cgr.gene.pred
+
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest genePredToBed \
+/microprotein_analysis/orf_identification/cgr.gene.pred \
+/microprotein_analysis/orf_identification/cgr.orfrater.annotation.tmp.bed
+
+# gtfToGenePred \
+# -ignoreGroupsWithoutExons -allErrors $gtf stdout | \
+# genePredToBed stdin \
+# $orf_dir/cgr.orfrater.annotation.tmp.bed
 
 # 3. remove the chromosome thats causes error 
 grep -v NW_023277000.1  $orf_dir/cgr.orfrater.annotation.tmp.bed > \
@@ -50,7 +60,8 @@ rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
 # rm $orf_dir/*.txt
 
 # 5. run the ORF-RATER docker with the commands file
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater:final bash "/microprotein_analysis/scripts/orf_discovery/run_orfrater.sh"
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest  \
+bash "/microprotein_analysis/scripts/orf_discovery/run_orfrater.sh"
 
 # 6. convert orfrater BED to GTF
 /mnt/HDD2/colin/bin/kentUtils/bin/linux.x86_64/bedToGenePred \
