@@ -1,0 +1,9 @@
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10715NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_nd_r1.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10716NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_nd_r2.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10719NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_nd_r3.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10753NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_ond_r1.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10755NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_ond_r2.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10757NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_ond_r3.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10620NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_old_r1.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10622NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_old_r2.raw
+proteomics/raw_files/drug_product/pythoud/trastuzumab/QX10623NP.raw proteomics/raw_files/drug_product/pythoud/trastuzumab/pythoud_trastuzumab_old_r3.raw
