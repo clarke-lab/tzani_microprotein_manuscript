@@ -123,7 +123,7 @@ $out_dir/nd \
 --ratingsfile $out_dir/orfratings.h5 \
 -p $threads \
 -v \
---CSV $out_dir/rate_regression.ncbi.csv \
+--CSV $out_dir/rate_regression.csv \
 --force > $out_dir/rate.regression.log
 
  make_orf_bed.py \
