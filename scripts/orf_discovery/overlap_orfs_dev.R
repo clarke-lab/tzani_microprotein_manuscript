@@ -142,6 +142,9 @@ table(with_start_codon$tis_window)
 
 inside_window <- with_start_codon %>%
   filter(tis_window == "inside") %>%
+  rowwise() %>%
+  mutate(ref_atg_tis = ifelse("ATG" %in% `reference_codon`, TRUE, FALSE)) %>%
+  mutate(target_atg_tis = ifelse("ATG" %in% `target_codon`, TRUE, FALSE)) %>%
   mutate(max_value = pmax(reference_rhar, target_rhar),
   result = if_else(max_value == reference_rhar, ref, target)) 
 
@@ -181,4 +184,5 @@ outside_tis_window_removed <- unique(outside_table_removed$removed_orf)
 overlapping_orf_filter <- c(outside_tis_window_removed, inside_window_removed)
 
 test <- orftable_tis_filtered %>%
-filter(!`ORF-RATER name` %in% overlapping_orf_filter)
+filter(!`ORF-RATER name` %in% unique(overlapping_orf_filter)) %>%
+filter(`ORF-RATER name` %in% unique(in_dp))
