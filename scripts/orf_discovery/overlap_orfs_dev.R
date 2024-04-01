@@ -2,6 +2,8 @@
 starting <- orftable_tis_filtered %>%
 filter(`ORF type` !=  "Annotated")
 
+dim(starting)[1]
+
 # determine which ORFs are the only ORFs on a transcript
 sole_novel_orfs <- orftable_tis_filtered %>%
 filter(`ORF type` !=  "Annotated") %>%
@@ -99,16 +101,33 @@ while (length(overlap_orf_granges) > 0) {
 dim(sole_novel_orfs)[1] + length(unique(c(overlap_pairs$ref, overlap_pairs$target))) + length(non_overlapping_orfs)
 
 # some overlaps have the same start and end, keep one for each
+# we remove these overlaps, but come each ref/target but remove the if they  
+# do not meet the criteria of the inside/outside TIS window
 perfect_match_retained <- overlap_pairs %>%
   dplyr::filter((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop == target_stop)) %>%
   distinct(tid_ref,.keep_all=T) %>%
   dplyr::select(ref)
 
+dim(overlap_pairs)[1]
+# remove perfect matches
+overlap_pairs <- overlap_pairs %>%
+  dplyr::filter(!((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop == target_stop)))
+dim(overlap_pairs)[1]
+
+
 # some overlaps have the same start but different ends
+# we remove these overlaps, but come each ref/target but remove the if they  
+# do not meet the criteria of the inside/outside TIS window
 different_stops <- overlap_pairs %>%
   filter((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop != target_stop)) 
 
 different_stops <- unique(c(different_stops$ref, different_stops$target))
+
+dim(overlap_pairs)[1]
+# remove different stops
+overlap_pairs <- overlap_pairs %>%
+  filter(!((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop != target_stop)))
+dim(overlap_pairs)[1]
 
 # start codon window
 with_start_codon  <- overlap_pairs %>%
@@ -132,6 +151,7 @@ length(all_inside)
 length(unique(inside_window$result))
 
 inside_window_removed <- all_inside[!all_inside %in% inside_window$result]
+length(inside_window_removed)
 
 outside_table <- with_start_codon %>%
   filter(tis_window == "outside") 
@@ -152,8 +172,13 @@ outside_table <- with_start_codon %>%
 
 table(outside_table$decision)
 
-remove_target <- outside_table %>% 
-  filter(decision=="remove_target")
+outside_table_removed <- outside_table %>%
+filter(decision != "keep") %>%
+mutate(removed_orf = ifelse(decision == "remove_target", target, ref))
 
-remove_reference <- outside_table %>% 
-  filter(decision=="remove_reference")
+outside_tis_window_removed <- unique(outside_table_removed$removed_orf)
+
+overlapping_orf_filter <- c(outside_tis_window_removed, inside_window_removed)
+
+test <- orftable_tis_filtered %>%
+filter(!`ORF-RATER name` %in% overlapping_orf_filter)
