@@ -37,11 +37,6 @@ docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater genePredToB
 /microprotein_analysis/orf_identification/cgr.gene.pred \
 /microprotein_analysis/orf_identification/cgr.orfrater.annotation.tmp.bed
 
-# gtfToGenePred \
-# -ignoreGroupsWithoutExons -allErrors $gtf stdout | \
-# genePredToBed stdin \
-# $orf_dir/cgr.orfrater.annotation.tmp.bed
-
 # 3. remove the chromosome thats causes error 
 grep -v NW_023277000.1  $orf_dir/cgr.orfrater.annotation.tmp.bed > \
 $orf_dir/cgr.orfrater.annotation.tmp2.bed
@@ -76,7 +71,6 @@ docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater genePredToG
 source activate microprotein_process_env
 samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
 conda deactivate
-
 
 # filter ORFs 
 source activate microprotein_r_env
