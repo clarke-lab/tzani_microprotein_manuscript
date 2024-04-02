@@ -1,51 +1,48 @@
 
 starting <- orftable_tis_filtered %>%
-filter(`ORF type` !=  "Annotated")
-
+filter(!`ORF type` != "Annotated") 
 dim(starting)[1]
 
 # determine which ORFs are the only ORFs on a transcript
-sole_novel_orfs <- orftable_tis_filtered %>%
-filter(`ORF type` !=  "Annotated") %>%
+single_orf_per_transcript <- orftable_tis_filtered %>%
+filter(!`ORF type` != "Annotated")  %>%
   group_by(`Transcript family`) %>%
   arrange(`Transcript family`) %>%
   mutate(count_orf = dplyr::n()) %>%
- dplyr::filter(count_orf == 1)
-
-dim(sole_novel_orfs)[1]
+  dplyr::filter(count_orf == 1)
+dim(single_orf_per_transcript)[1]
 
 # determine instances where more than one novel ORFs are found on a transcript
-potential_overlapping_orfs <- orftable_tis_filtered %>%
-filter(`ORF type` !=  "Annotated") %>% # 
+multiple_orfs_per_transcript <- orftable_tis_filtered %>%
+filter(!`ORF type` != "Annotated")  %>%
   group_by(`Transcript family`) %>%
   mutate(count_orf = dplyr::n())  %>%
   dplyr::filter(count_orf > 1)  %>%
   arrange(-`Length (AAs)`) # important as we start with the longest ORF when comparing overlaps below
 
-dim(potential_overlapping_orfs)[1]
+dim(multiple_orfs_per_transcript)[1]
 
 # for each set of overlapping ORFs divide to pairs to determine overlap
-overlap_orf_granges <- GRanges(seqnames = potential_overlapping_orfs$`Transcript family`, 
-        ranges = IRanges(start = potential_overlapping_orfs$`Transcript start position`, 
-                         end = potential_overlapping_orfs$`Transcript stop position`))
+orf_granges <- GRanges(seqnames = multiple_orfs_per_transcript$`Transcript family`, 
+        ranges = IRanges(start = multiple_orfs_per_transcript$`Transcript start position`, 
+                         end = multiple_orfs_per_transcript$`Transcript stop position`))
 
-names(overlap_orf_granges) <- potential_overlapping_orfs$`ORF-RATER name` 
-
+names(orf_granges) <- multiple_orfs_per_transcript$`ORF-RATER name` 
 
 non_overlapping_orfs <- c()
-overlap_pairs <- data.frame()
+orf_pairs <- data.frame()
 
 k=0 # iterator for no overlapping hits
-while (length(overlap_orf_granges) > 0) {
-  # print(length(overlap_orf_granges))
-  if (length(overlap_orf_granges) > 1) {  
+while (length(orf_granges) > 0) {
+  # print(length(orf_granges))
+  if (length(orf_granges) > 1) {  
     
     # take reference off top of current iteration
-    reference_orf <- overlap_orf_granges[1] 
+    reference_orf <- orf_granges[1] 
     
     # remove ref from comparison set
-    target_gr <- overlap_orf_granges[-1] 
-    overlap_orf_granges <- target_gr
+    target_gr <- orf_granges[-1] 
+    orf_granges <- target_gr
 
     if (length(findOverlaps(reference_orf, target_gr)) > 0) {
   
@@ -80,10 +77,10 @@ while (length(overlap_orf_granges) > 0) {
           reference_rhar = ref_orfrater$Rharr_min_Rnd,
           target_rhar =  gr_orfrater$Rharr_min_Rnd)
         
-        overlap_pairs <- bind_rows(overlap_pairs, overlap_def)
+        orf_pairs <- bind_rows(orf_pairs, overlap_def)
       }
       # when finished remove the hits from test as we know the overlap with longest
-      overlap_orf_granges <- overlap_orf_granges[-hit_index]
+      orf_granges <- orf_granges[-hit_index]
       
     } else {
         k=k+1
@@ -93,44 +90,41 @@ while (length(overlap_orf_granges) > 0) {
   } else{
     # if only left must by definition by non-overlapping
       k=k+1
-      non_overlapping_orfs[k] <- names(overlap_orf_granges[1])
-      overlap_orf_granges <- overlap_orf_granges[0]
+      non_overlapping_orfs[k] <- names(orf_granges[1])
+      orf_granges <- orf_granges[0]
   }
 }
 
-dim(sole_novel_orfs)[1] + length(unique(c(overlap_pairs$ref, overlap_pairs$target))) + length(non_overlapping_orfs)
+dim(single_orf_per_transcript)[1] + length(unique(c(orf_pairs$ref, orf_pairs$target))) + length(non_overlapping_orfs)
 
 # some overlaps have the same start and end, keep one for each
-# we remove these overlaps, but come each ref/target but remove the if they  
-# do not meet the criteria of the inside/outside TIS window
-perfect_match_retained <- overlap_pairs %>%
+# we remove these overlaps, but come each ref/target but will remove later if they  
+# do not meet the criteria of the inside/outside TIS window for other ORFs they overlap with
+perfect_match <- orf_pairs %>%
   dplyr::filter((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop == target_stop)) %>%
   distinct(tid_ref,.keep_all=T) %>%
   dplyr::select(ref)
+dim(orf_pairs)[1]
 
-dim(overlap_pairs)[1]
-# remove perfect matches
-overlap_pairs <- overlap_pairs %>%
+# remove perfect matches from the orf_pairs
+orf_pairs <- orf_pairs %>%
   dplyr::filter(!((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop == target_stop)))
-dim(overlap_pairs)[1]
-
+dim(orf_pairs)[1]
 
 # some overlaps have the same start but different ends
-# we remove these overlaps, but come each ref/target but remove the if they  
-# do not meet the criteria of the inside/outside TIS window
-different_stops <- overlap_pairs %>%
+# we remove these overlaps from the potentials now, but remove the if they  
+# do not meet the criteria of the inside/outside TIS window filters for other ORFs they overlap with
+different_stops <- orf_pairs %>%
   filter((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop != target_stop)) 
 
-different_stops <- unique(c(different_stops$ref, different_stops$target))
-
-dim(overlap_pairs)[1]
 # remove different stops
-overlap_pairs <- overlap_pairs %>%
+orf_pairs <- orf_pairs %>%
   filter(!((tid_ref == tid_target) & (ref_start==target_start) & (ref_stop != target_stop)))
-dim(overlap_pairs)[1]
+dim(orf_pairs)[1]
 
-# start codon window
-with_start_codon  <- overlap_pairs %>%
+# for the remaining ORF pairs, determine if these ORFs occur within the TIS window (7 nt around the TIS)
+
+with_start_codon  <- orf_pairs %>%
   arrange(ref) %>%
   mutate(tis_diff=abs(target_start-ref_start)) %>%
   mutate(tis_window = case_when(
@@ -146,14 +140,18 @@ inside_window <- with_start_codon %>%
   mutate(ref_atg_tis = ifelse("ATG" %in% `reference_codon`, TRUE, FALSE)) %>%
   mutate(target_atg_tis = ifelse("ATG" %in% `target_codon`, TRUE, FALSE)) %>%
   mutate(max_value = pmax(reference_rhar, target_rhar),
-  result = if_else(max_value == reference_rhar, ref, target)) 
+  result = if_else(max_value == reference_rhar, ref, target)) %>%
+  mutate(decision = case_when(
+    (ref_atg_tis == T & target_atg_tis == F) ~ ref, 
+    (target_atg_tis == T & ref_atg_tis == F) ~ target,
+    (target_atg_tis == T & ref_atg_tis == T) ~ result,
+    (target_atg_tis == F & ref_atg_tis == F) ~ result
+  )) 
 
 all_inside <- unique(c(inside_window$ref, inside_window$target))
 length(all_inside)
 
-length(unique(inside_window$result))
-
-inside_window_removed <- all_inside[!all_inside %in% inside_window$result]
+inside_window_removed <- all_inside[!all_inside %in% inside_window$decision]
 length(inside_window_removed)
 
 outside_table <- with_start_codon %>%
@@ -183,6 +181,9 @@ outside_tis_window_removed <- unique(outside_table_removed$removed_orf)
 
 overlapping_orf_filter <- c(outside_tis_window_removed, inside_window_removed)
 
-test <- orftable_tis_filtered %>%
+a <- orftable_tis_filtered %>%
 filter(!`ORF-RATER name` %in% unique(overlapping_orf_filter)) %>%
-filter(`ORF-RATER name` %in% unique(in_dp))
+filter(`ORF-RATER name` %in% unique(drug_product_psms$protein))
+
+
+unique(drug_product_psms$protein)[!unique(drug_product_psms$protein) %in% a$`ORF-RATER name` ]
