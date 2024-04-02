@@ -27,7 +27,6 @@ sed s/\"//g | sed 's/[[:space:]]//g'| uniq > $orf_dir/pseudogene_transcript_ids.
 echo "$(wc -l < $orf_dir/pseudogene_transcript_ids.txt) pseduogene transcripts removed"
 
 # 2. convert NCBI gtf to genePred format 
-
 docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater gtfToGenePred \
 -ignoreGroupsWithoutExons -allErrors \
 /microprotein_analysis/reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.gtf \
@@ -55,7 +54,7 @@ rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
 # rm $orf_dir/*.txt
 
 # 5. run the ORF-RATER docker with the commands file
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater  \
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater \
 bash "/microprotein_analysis/scripts/orf_discovery/run_orfrater.sh"
 
 # 6. convert orfrater BED to GTF
@@ -72,7 +71,7 @@ source activate microprotein_process_env
 samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
 conda deactivate
 
-# filter ORFs 
-source activate microprotein_r_env
-Rscript scripts/orf_discovery/filter_orfrater.R
-conda deactivate
+# # filter ORFs 
+# source activate microprotein_r_env
+# Rscript scripts/orf_discovery/filter_orfrater.R
+# conda deactivate
