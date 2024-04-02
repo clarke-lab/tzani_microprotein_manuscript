@@ -28,12 +28,12 @@ echo "$(wc -l < $orf_dir/pseudogene_transcript_ids.txt) pseduogene transcripts r
 
 # 2. convert NCBI gtf to genePred format 
 
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest gtfToGenePred \
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater gtfToGenePred \
 -ignoreGroupsWithoutExons -allErrors \
 /microprotein_analysis/reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.gtf \
 /microprotein_analysis/orf_identification/cgr.gene.pred
 
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest genePredToBed \
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater genePredToBed \
 /microprotein_analysis/orf_identification/cgr.gene.pred \
 /microprotein_analysis/orf_identification/cgr.orfrater.annotation.tmp.bed
 
@@ -60,30 +60,25 @@ rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
 # rm $orf_dir/*.txt
 
 # 5. run the ORF-RATER docker with the commands file
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest  \
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater  \
 bash "/microprotein_analysis/scripts/orf_discovery/run_orfrater.sh"
 
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest bedToGenePred \
-
-
-docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orf-rater:latest genePredToGTF
-
 # 6. convert orfrater BED to GTF
-/mnt/HDD2/colin/bin/kentUtils/bin/linux.x86_64/bedToGenePred \
-orf_identification/orfraterorfrater_predictions.reference.bed stdout | \
-/mnt/HDD2/colin/bin/kentUtils/bin/linux.x86_64/genePredToGtf file stdin \
-orf_identification/orfrater/orfrater_predictions.reference.gtf
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater bedToGenePred \
+/microprotein_analysis/orf_identification/orfrater/orfrater_predictions.reference.bed \
+/microprotein_analysis/orf_identification/orfrater/orfrater_predictions.reference.genePred
 
-
-# write the metagenes for each riboseq type to results
-
-# mkdir results/metagene_profiles
-# cp orfrater_analysis/chx/metagene.txt results/metagene_profiles/chx.metagene.txt
-# cp orfrater_analysis/harr/metagene.txt results/metagene_profiles/harr.metagene.txt
-# cp orfrater_analysis/nd/metagene.txt results/metagene_profiles/nd.metagene.txt
+docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater genePredToGtf file \
+/microprotein_analysis/orf_identification/orfrater/orfrater_predictions.reference.genePred \
+/microprotein_analysis/orf_identification/orfrater/orfrater_annotation.gtf
 
 # index reference genome fasta to create TxDb in next step
 source activate microprotein_process_env
 samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
 conda deactivate
 
+
+# filter ORFs 
+source activate microprotein_r_env
+Rscript scripts/orf_discovery/filter_orfrater.R
+conda deactivate
