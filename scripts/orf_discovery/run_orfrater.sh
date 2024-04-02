@@ -47,7 +47,7 @@ $work_dir/reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna \
 --orfstore $out_dir/orf.h5 > \
 $out_dir/3find_ORF.log
 
-mkdir $work_dir/orfrater_analysis/chx
+mkdir $out_dir/chx
 psite_trimmed.py \
 $work_dir/sequencing/riboseq_chx/mapped/merged/riboseq_chx.bam \
 --minrdlen 28 \
@@ -59,7 +59,7 @@ $work_dir/sequencing/riboseq_chx/mapped/merged/riboseq_chx.bam \
 -p $threads \
 --force > $out_dir/psite_chx.log
 
-mkdir $work_dir/orfrater_analysis/nd
+mkdir $out_dir/nd
 psite_trimmed.py \
 $work_dir/sequencing/riboseq_nd/mapped/merged/riboseq_nd.bam \
 --minrdlen 28 \
