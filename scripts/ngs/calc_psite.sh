@@ -7,6 +7,7 @@
 ####              2. merged samples   
 #### Written by: NIBRT Clarke Lab. - colin.clarke@nibrt.ie
 
+source activate microprotein_process_env
 mkdir sequencing/plastid_analysis && plastid_dir=$_
 
 mkdir $plastid_dir/annotation
@@ -71,3 +72,4 @@ do
   --min_length 28 \
   --max_length 31
 done
+conda deactivate
