@@ -1,11 +1,11 @@
 #!/bin/bash
 
-types=("drug_product")
+types=("drug_product" "lysate")
 
 for type in "${types[@]}"; do
 
     if [ "$type" == "drug_product" ]; then
-        studies=( "pythoud")
+        studies=("tzani" "pythoud")
     elif [ "$type" == "lysate" ]; then
         studies=("tzani")
     fi
@@ -35,21 +35,23 @@ for type in "${types[@]}"; do
 
             if [ $study == "pythoud" ]; then
                 find $lcms_data -name "*.zip" -exec unzip -d $lcms_data {} \;
-               # mv $lcms_data/*/*.raw $lcms_data
-               # rm $lcms_data/*.zip
-               # rm -r $lcms_data/*Semi-fractionation $lcms_data/*_OLD $lcms_data/*_OND $lcms_data/*_ND
+                mv $lcms_data/*/*.raw $lcms_data
+                rm $lcms_data/*.zip
+                rm -r $lcms_data/*Semi-fractionation $lcms_data/*_OLD $lcms_data/*_OND $lcms_data/*_ND
 
-            # # # Loop through each line in list.txt
-            #     while IFS=' ' read -r current_filename new_filename; do
-            #     # Check if the current file exists in the directory
-            #         if [ -f $lcms_data/"$current_filename" ]; then
-            #             # Rename the file to the new filename
-            #             mv $lcms_data/"$current_filename" $lcms_data/"$new_filename"
-            #             echo "Renamed: $current_filename -> $new_filename"
-            #         else
-            #             echo "File not found: $current_filename"
-            #         fi
-            #     done < data/ds_msdata_dl/pythoud_"$sample"_rename.txt
+             # # Loop through each line in list.txt
+                 while IFS=' ' read -r current_filename new_filename; do
+                
+                 # Check if the current file exists in the directory
+                     if [ -f "$current_filename" ]; then
+                         # Rename the file to the new filename
+                        mv "$current_filename" "$new_filename"
+                        echo "Renamed: $current_filename -> $new_filename"
+
+                     else
+                         echo "File not found: $current_filename"
+                     fi
+                 done < data/download/msdata_dl/pythoud_"$sample"_rename.txt
             fi
 
         done
