@@ -10,7 +10,7 @@
 #### Written by: NIBRT Clarke Lab. - colin.clarke@nibrt.
 
 mkdir differential_translation && dt_dir=$_
-
+conda activate microprotein_process_env
 # Make a reference to count with Plastid
 ./scripts/differential_translation/make_plastid_reference.sh
 

@@ -9,9 +9,9 @@
 ####                 from ORF-RATER
 ####              4. Make a mask to elimate codons that may be biased due to 
 ####                 CHX
-####              5. Apply mask and make count reference    
-#### 
-#### Written by: NIBRT Clarke Lab. - colin.clarke@nibrt.ie
+####              5. Apply 
+
+conda activate microprotein_process_env
 
 mkdir differential_translation && dt_dir=$_
 mkdir differential_translation/plastid_reference && plastid_ref=$_
@@ -37,7 +37,7 @@ rm $plastid_ref/annotated_protein_coding.tmp.gtf
 #--bed diff_translation_analysis/cgr_reference.bed
 
 # selected novel ofs comes from R - filtered for potential false positive "new" annotation
- grep -f $orfid_dir/orf_filtered/lncRNA_novel_orfs.txt \
+ grep -f $orfid_dir/orf_filtered/lncrna_novel_orfs.txt \
  $orfid_dir/orfrater/orfrater_annotation.gtf > \
  $plastid_ref/lncrna_orfs.gtf
 
@@ -55,8 +55,8 @@ rm $plastid_ref/annotated_protein_coding.tmp.gtf
 # diff_translation_analysis/diff_translation.bed
 
 # use plastid to mask and generate the count reference
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate plastid
+# source ~/miniconda3/etc/profile.d/conda.sh
+# conda activate plastid
 
 # mask codons
 python scripts/differential_translation/create_plastid_mask.py
@@ -73,7 +73,7 @@ python scripts/differential_translation/create_plastid_mask.py
 # bgzip  > plastid_reference/stop_codon_masks.bed.gz
 # tabix -p plastid_reference/stop_codon_masks.bed.gz
 
- cs generate \
+cs generate \
  --annotation_files $plastid_ref/extended_orf_annotation.gtf  \
  --annotation_format GTF2 \
  $plastid_ref/annotation \
