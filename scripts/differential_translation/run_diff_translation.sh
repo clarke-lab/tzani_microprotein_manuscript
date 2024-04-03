@@ -14,10 +14,10 @@ conda activate microprotein_process_env
 # Make a reference to count with Plastid
 ./scripts/differential_translation/make_plastid_reference.sh
 
-mkdir -p $dt_dir/quantitation/transcript_cds_rpkm
+mkdir -p $dt_dir/quantitation/cds_
 ./scripts/differential_translation/calculate_rpkm.sh
 
-mkdir $dt_dir/quantitation/gene_cds_counts
-./scripts/differential_translation/calculate_gene_cds_counts.sh
+# mkdir $dt_dir/cds_counts
+./scripts/differential_translation/count_cds_reads.sh
 
 Rscript ./scripts/run_deseq2.R

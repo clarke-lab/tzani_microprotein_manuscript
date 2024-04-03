@@ -13,7 +13,7 @@ plastid_ref=$dt_dir/plastid_reference
 chx_dir=sequencing/riboseq_chx/mapped/individual
 rna_dir=sequencing/riboseq_se/mapped/individual
 
-mkdir $dt_dir/gene_cds_counts && count_dir=$_
+mkdir $dt_dir/cds_counts && count_dir=$_
 # count the CHX riboseq data
 
 for i in nts_r1 nts_r2 nts_r3 nts_r4 ts_r1 ts_r2 ts_r3 ts_r4
