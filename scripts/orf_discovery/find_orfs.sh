@@ -50,7 +50,7 @@ $orf_dir/cgr.orfrater.annotation.reference.bed
 echo "$(wc -l < $orf_dir/miscrna_transcript_ids.txt) miscRNA transcripts removed"
 
 # clean up
-rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
+# rm $orf_dir/cgr.orfrater.annotation.tmp*.bed
 # rm $orf_dir/*.txt
 
 # 5. run the ORF-RATER docker with the commands file
@@ -67,9 +67,9 @@ docker run --rm -v $PWD:/microprotein_analysis -t clarkelab/orfrater genePredToG
 /microprotein_analysis/orf_identification/orfrater/orfrater_annotation.gtf
 
 # index reference genome fasta to create TxDb in next step
-source activate microprotein_process_env
-samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
-conda deactivate
+# source activate microprotein_process_env
+# samtools faidx reference_genome/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fna
+# conda deactivate
 
 # # filter ORFs 
 # source activate microprotein_r_env
