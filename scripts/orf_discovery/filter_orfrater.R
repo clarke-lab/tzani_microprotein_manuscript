@@ -20,6 +20,7 @@ if (!dir.exists(out_dir)) {
     intern = T, ignore.stderr = T, ignore.stdout = T)
 }
 
+
 ############################################################
 # 1. Genome Annotation Data
 ############################################################
@@ -229,8 +230,8 @@ transcript_counts <- harr_transcript_counts %>%
 orf_start_codons <- GRanges(
   seqnames = orftable_annotated$`Transcript ID`,
   ranges = IRanges(
-    start = orftable_annotated$`Transcript start position`-2,
-    width = 5,
+    start = orftable_annotated$`Transcript start position`-3,
+    width = 7,
     strand = "*"),
   names = orftable_annotated$`ORF-RATER name`
 )
@@ -270,6 +271,8 @@ table(orftable_tis_filtered$`ORF type`, orftable_tis_filtered$`Start codon`)
 
 saveRDS(orftable_tis_filtered, 
     file = paste0(out_dir,"orfs_remaining_post_tis_filter.rds"))
+
+stop("finished")
 
 ############################################################
 # 5. Prepare for ORFik and FLOSS analysis
