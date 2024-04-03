@@ -1,26 +1,43 @@
+#!/usr/bin/env Rscript --vanilla
 
-starting <- orftable_tis_filtered %>%
-filter(!`ORF type` != "Annotated") 
-dim(starting)[1]
+suppressMessages(library(ORFik))
+suppressMessages(library(tidyverse))
+
+old_orfs <- readRDS("final_orfs.rds")
+old_orfs <- old_orfs %>% filter(!`ORF type` != "Annotated") 
+old_detected_proteins <- unique(old_orfs$`ORF-RATER name`)
+paste0(length(old_detected_proteins), " novel ORFs previously detected")
+
+dp_psms <- readRDS("drug_product_psms.rds")
+dp_detected_proteins <- unique(dp_psms$protein)
+paste0(length(dp_detected_proteins), " microproteins detected in DP previously")
+
+lysate_psms <- readRDS("lysate_psms.rds")
+lysate_detected_proteins <- unique(lysate_psms$protein)
+paste0(length(lysate_detected_proteins), " microproteins detected in lysate previously")
+
+orftable_tis_filtered <- readRDS("orf_identification/orf_filtered/orfs_remaining_post_tis_filter.rds")
+orftable_tis_filtered %>% filter(`ORF type` != "Annotated") %>% summarize(novel_orfs_post_tis=n())
+orftable_tis_filtered %>% filter(`ORF-RATER name` %in% dp_detected_proteins) %>% summarize(dp_found_in_new_run_post_tis=n())
+orftable_tis_filtered %>% filter(`ORF-RATER name` %in% lysate_detected_proteins) %>% summarize(lysate_in_new_run_post_tis=n())
 
 # determine which ORFs are the only ORFs on a transcript
 single_orf_per_transcript <- orftable_tis_filtered %>%
-filter(!`ORF type` != "Annotated")  %>%
+filter(`ORF type` != "Annotated")  %>%
   group_by(`Transcript family`) %>%
   arrange(`Transcript family`) %>%
   mutate(count_orf = dplyr::n()) %>%
   dplyr::filter(count_orf == 1)
-dim(single_orf_per_transcript)[1]
+paste0(dim(single_orf_per_transcript)[1], " novel ORFs found alone on transcript")
 
 # determine instances where more than one novel ORFs are found on a transcript
 multiple_orfs_per_transcript <- orftable_tis_filtered %>%
-filter(!`ORF type` != "Annotated")  %>%
+filter(`ORF type` != "Annotated")  %>%
   group_by(`Transcript family`) %>%
   mutate(count_orf = dplyr::n())  %>%
   dplyr::filter(count_orf > 1)  %>%
   arrange(-`Length (AAs)`) # important as we start with the longest ORF when comparing overlaps below
-
-dim(multiple_orfs_per_transcript)[1]
+paste0(dim(multiple_orfs_per_transcript)[1], " novel ORFs found with one or more others on transcript")
 
 # for each set of overlapping ORFs divide to pairs to determine overlap
 orf_granges <- GRanges(seqnames = multiple_orfs_per_transcript$`Transcript family`, 
@@ -140,19 +157,19 @@ inside_window <- with_start_codon %>%
   mutate(ref_atg_tis = ifelse("ATG" %in% `reference_codon`, TRUE, FALSE)) %>%
   mutate(target_atg_tis = ifelse("ATG" %in% `target_codon`, TRUE, FALSE)) %>%
   mutate(max_value = pmax(reference_rhar, target_rhar),
-  result = if_else(max_value == reference_rhar, ref, target)) %>%
+  tis_max = if_else(max_value == reference_rhar, ref, target)) %>%
   mutate(decision = case_when(
     (ref_atg_tis == T & target_atg_tis == F) ~ ref, 
     (target_atg_tis == T & ref_atg_tis == F) ~ target,
-    (target_atg_tis == T & ref_atg_tis == T) ~ result,
-    (target_atg_tis == F & ref_atg_tis == F) ~ result
+    (target_atg_tis == T & ref_atg_tis == T) ~ tis_max,
+    (target_atg_tis == F & ref_atg_tis == F) ~ tis_max
   )) 
 
 all_inside <- unique(c(inside_window$ref, inside_window$target))
 length(all_inside)
 
 inside_window_removed <- all_inside[!all_inside %in% inside_window$decision]
-length(inside_window_removed)
+length(unique(inside_window_removed))
 
 outside_table <- with_start_codon %>%
   filter(tis_window == "outside") 
@@ -181,9 +198,8 @@ outside_tis_window_removed <- unique(outside_table_removed$removed_orf)
 
 overlapping_orf_filter <- c(outside_tis_window_removed, inside_window_removed)
 
-a <- orftable_tis_filtered %>%
-filter(!`ORF-RATER name` %in% unique(overlapping_orf_filter)) %>%
-filter(`ORF-RATER name` %in% unique(drug_product_psms$protein))
+orftable_overlap_filtered <- orftable_tis_filtered %>%
+filter(!`ORF-RATER name` %in% unique(overlapping_orf_filter)) 
 
-
-unique(drug_product_psms$protein)[!unique(drug_product_psms$protein) %in% a$`ORF-RATER name` ]
+orftable_overlap_filtered %>% filter(`ORF-RATER name` %in% dp_detected_proteins) %>% summarize(dp_found_in_new_run_post_isoform=n())
+orftable_overlap_filtered %>% filter(`ORF-RATER name` %in% lysate_detected_proteins) %>% summarize(lysate_in_new_run_post_isoform=n())
