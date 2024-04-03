@@ -14,7 +14,7 @@
 
 mkdir -p sequencing/coverage_tracks/merged && merged_dir=$_
 
-for seqtype in riboseq_harr riboseq_chx riboseq_nd
+for seqtype in riboseq_harr riboseq_chx riboseq_nd rnaseq_se
 do
   if ! [ -f  sequencing/$seqtype/mapped/merged/$seqtype"Aligned.toTranscriptome.out.sorted.bam.bai" ]; then
     ## sort and index transcriptome aligned BAMs
@@ -34,18 +34,6 @@ do
      --output_format bedgraph \
      -o $merged_dir/$seqtype.psite.transcriptome.nonorm.bedgraph
 
-done
-
-for seqtype in riboseq_chx riboseq_harr riboseq_nd riboseq_chx
- do
-     make_wiggle \
-     --count_files data/$seqtype/mapped/merged/$seqtype"Aligned.toTranscriptome.out.sorted.bam" \
-     --countfile_format BAM \
-     --fiveprime \
-     --offset 12 \
-     --output_format bedgraph \
-     -o $merged_dir/$seqtype.psite.transcriptome.nonorm.bedgraph 
-    
 done
 
 # full coverage CHX track
