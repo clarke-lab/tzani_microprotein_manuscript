@@ -82,8 +82,8 @@ for type in "${types[@]}"; do
             elif [ "$study" == "pythoud" ] && [ "$type" == "drug_product" ]; then
 
                 raw_dir=proteomics/raw_files/$type/$study/$sample
-                quant_standard=data/protein_sequences/standards/massprep.fasta
-                irt_standard=data/protein_sequences/stanards/irt_standard.fasta
+                quant_standard=data/protein_sequences/standards/massprep_standard.fasta
+                irt_standard=data/protein_sequences/standards/irt_standard.fasta
                 mab=data/protein_sequences/mabs/"$sample".fasta
 
                 metamorpheus \
