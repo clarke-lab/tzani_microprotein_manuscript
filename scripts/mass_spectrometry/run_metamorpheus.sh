@@ -14,7 +14,7 @@
 
 source activate metamorpheus
 
-# Download the uniprot and contaminant databases
+# Download the uniprot and cRAP contaminant fasta
 if ! [ -e reference_proteome ]; then
 mkdir reference_proteome
 cat data/download/reference_proteome_files.txt | parallel -j 4 wget -P reference_proteome {}
@@ -27,7 +27,7 @@ crap=reference_proteome/crap.fasta
 mkdir proteomics/metamorpheus
 metamorpheus_dir=proteomics/metamorpheus
 
-types=("drug_product" "lysate")
+types=("drug_product")
 
 for type in "${types[@]}"; do 
 
@@ -35,7 +35,7 @@ for type in "${types[@]}"; do
 
     if [ $type == "drug_product" ]; then
         
-        studies=("tzani" "pythoud")
+        studies=("tzani")
                 
     elif [ "$type" == "lysate" ]; then
         
