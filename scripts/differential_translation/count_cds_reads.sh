@@ -41,4 +41,4 @@ cs count \
 done
 
 # merge the RNASeq and Ribo-seq counts into a single table
-# python scripts/differential_translation/combine_gene_cds_counts.py 
+ python scripts/differential_translation/combine_cds_counts.py 
