@@ -11,7 +11,7 @@
 dt_dir=differential_translation
 plastid_ref=$dt_dir/plastid_reference
 chx_dir=sequencing/riboseq_chx/mapped/individual
-rna_dir=sequencing/riboseq_se/mapped/individual
+rna_dir=sequencing/rnaseq_se/mapped/individual
 
 mkdir $dt_dir/cds_counts && count_dir=$_
 # count the CHX riboseq data
