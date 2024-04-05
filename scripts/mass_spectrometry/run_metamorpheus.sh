@@ -27,7 +27,7 @@ crap=reference_proteome/crap.fasta
 mkdir proteomics/metamorpheus
 metamorpheus_dir=proteomics/metamorpheus
 
-types=("drug_product")
+types=("drug_product" "lysate")
 
 for type in "${types[@]}"; do 
 
@@ -35,7 +35,7 @@ for type in "${types[@]}"; do
 
     if [ $type == "drug_product" ]; then
         
-        studies=("tzani")
+        studies=("tzani" "pythoud")
                 
     elif [ "$type" == "lysate" ]; then
         
