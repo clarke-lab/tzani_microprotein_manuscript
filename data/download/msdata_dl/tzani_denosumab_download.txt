@@ -1,3 +1,6 @@
-proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t1 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166956?token=316f8c6fae03734f04fdb7e1da88901e'
-proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t2 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166954?token=e1a718bb63548334067a7567d3690d8b'
-proteomics/raw_files/drug_product/tzani/denosumab/t
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t1.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166956?token=316f8c6fae03734f04fdb7e1da88901e'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t2.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166954?token=e1a718bb63548334067a7567d3690d8b'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b1_t3.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166975?token=64791abf54d12af4bde6e1b3376de4de'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b2_t1.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166950?token=ce7d22f7b676bfa76fed71134ccdfc98'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b2_t2.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166949?token=4eab4d17a06d9f81c6ae98d745527a0d'
+proteomics/raw_files/drug_product/tzani/denosumab/tzani_denosumab_b2_t3.raw 'https://www.ebi.ac.uk/pride/private/ws/archive/v2/projects/private/PXD030186/files/17166973?token=6ab59efdb8e791785edded60087e90bf'
