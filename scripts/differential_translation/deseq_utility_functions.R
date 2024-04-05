@@ -18,7 +18,7 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
       rownames(rna_counts)[rowMeans(ribo_counts) >= average_counts]
     detected.both <- intersect(detected.rna, detected.ribo)
     
-    print(length("detected.both"))
+    print(length(detected.both))
     
     counts <- count_data[detected.both, ]
     
@@ -113,27 +113,26 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
       "baseMean" = baseMean.x,
       "log2FoldChange" = log2FoldChange.x,
       "lfcSE" = lfcSE.x,
-      "stat" = stat.x,
+     # "stat" = stat.x,
       "pvalue" = pvalue.x,
       "padj" = padj.x,
       "symbol" = ncbi_symbol
     ) %>%
-    dplyr::select(symbol, name, GeneID, c(colnames(sig_res)))
+    dplyr::select(symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
 
   # annotate new ORFs
   nc_sig_res <- sig_res %>%
     filter(str_detect(geneid, "NR|XR")) %>%
     mutate(symbol = "New", name = "New",
             GeneID = 0) %>%
-    dplyr::select("symbol", "name", "GeneID",
-                  c(colnames(sig_res)))
+    dplyr::select(symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
 
   # complete the table of significant results
   sig_res <-
     bind_rows(pcg_without_loc_ids, pcg_with_loc_ids, nc_sig_res) %>%
     arrange(-log2FoldChange) %>%
     dplyr::select(c("geneid", "GeneID", "symbol", "name", "baseMean", "log2FoldChange",
-    "lfcSE","stat","pvalue","padj")
+    "lfcSE","pvalue","padj")
     ) %>%
     dplyr::rename(Plastid_ID = "geneid")
 

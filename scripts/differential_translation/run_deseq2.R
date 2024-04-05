@@ -88,7 +88,44 @@ pval_threshold, base_mean_threshold, average_counts,"riboseq", CriGri_PICRH_1_0_
 differential_translation <-  run_deseq(count_data,sample_table, fold_change_threshold, pval_threshold, base_mean_threshold, 
 average_counts,"translation", CriGri_PICRH_1_0_annotation,mouse_feature_table)
 
+############################################################
+# 2. Assess deltaTE classes
+############################################################
 
+te_res <- differential_translation$deseq_res
+rna_res <- differential_expression$deseq_res[rownames(te_res),]
+rpf_res <- differential_rpf$deseq_res[rownames(te_res),]
+
+forwarded = rownames(te_res)[which(te_res$padj >= 0.05 & rpf_res$padj < 0.05 & rna_res$padj < 0.05)]  # transcription only
+exclusive = rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj < 0.05 & rna_res$padj >= 0.05)]  # translation only 
+both = rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj < 0.05 & rna_res$padj < 0.05)] # change in both transcription and translation
+
+intensified = rownames(te_res[both[which(te_res[both,2]*rna_res[both,2] > 0)],]) # transcription only
+
+buffered = rownames(te_res[both[which(te_res[both,2]*rna_res[both,2] < 0)],])
+buffered = c(rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj >= 0.05 & rna_res$padj < 0.05)], buffered)
+
+rna_res <- rna_res[rownames(rpf_res),]
+joined <- bind_cols(rpf_fc = rpf_res$log2FoldChange, rna_fc =rna_res$log2FoldChange)
+joined <- joined %>% dplyr::mutate(gene_id=rownames(rpf_res))
+
+joined <- joined %>%
+mutate(class=case_when(
+ gene_id %in% forwarded  ~ "forwarded",
+ gene_id %in% exclusive  ~ "exclusive",
+ gene_id %in% intensified  ~ "intensified",
+ gene_id %in% buffered  ~ "buffered",
+ TRUE ~ "undetermined"
+))
+
+joined %>%
+filter(class != "undetermined") %>%
+ggplot(aes(x=rna_fc, y=rpf_fc, color=class)) +
+geom_point(size=0.1)
+
+b <- joined %>%
+filter(class != "undetermined") %>%
+filter(str_detect(gene_id, "XR")
 
 
 # save(differential_expression,differential_rpf,differential_translation, file = paste(results_dir, "/deseq_output.RData", sep = ""))
