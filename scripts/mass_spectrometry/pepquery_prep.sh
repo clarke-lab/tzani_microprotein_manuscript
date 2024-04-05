@@ -30,38 +30,34 @@ mv $digest_dir/prosit_input_with_proteins.csv \
 $digest_dir/microprotein_peptide_mapping.csv
 
 #### reference proteome
-mkdir $pepquery_dir/reference_proteome && ref_proteome=$_
+mkdir $pepquery_dir/known_proteome && ref_proteome=$_
 
-wget -P $ref_proteome \
- ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000001075/UP000001075_10029.fasta.gz
-gunzip $ref_proteome/*
-
-wget -P $ref_proteome ftp.thegpm.org/fasta/cRAP/crap.fasta
+cp reference_proteome/*.fasta $ref_proteome
 
 # all mabs
-cp data/protein_fasta/mabs/* $ref_proteome
+cp data/protein_sequences/mabs/* $ref_proteome
 
 # all standards
-cp data/protein_fasta/standards/* $ref_proteome
+cp data/protein_sequences/standards/* $ref_proteome
 
 find $ref_proteome/*.fasta -type f -exec cat {} \; > $ref_proteome/known_proteins.fasta
 
 #### file conversion
-make MGF format files from mass calibrated files
+# make MGF format files from mass calibrated files
 
-type=("upstream" "downstream")
+type=("lysate")
 
 for type in "${type[@]}"; do
 
-    mkdir -p $pepquery_dir/mgf/$type && mgf_dir=$_
+    mkdir -p $pepquery_dir/mgf_files/$type && mgf_dir=$_
 
     find proteomics/metamorpheus/$type -type f -name "*calib*.mzML" > \
     $pepquery_dir/mgf/"$type"_calibrated_file_list.txt
 
-    source activate microprotein_process_env
+    # source activate microprotein_process_env
     msconvert --mgf \
     -f $pepquery_dir/mgf/"$type"_calibrated_file_list.txt \
     -o $mgf_dir
-    conda deactivate
+    # conda deactivate
 
 done
