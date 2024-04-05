@@ -118,14 +118,40 @@ mutate(class=case_when(
  TRUE ~ "undetermined"
 ))
 
+joined <- joined %>%
+summarise(pmax(rna_fc, rpf_fc))
+
+colorblind_palette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#999999")
+max_fc <- max(c(abs(joined$rna_fc), abs(joined$rpf_fc)), na.rm = T)
+max_fc =6
 joined %>%
-filter(class != "undetermined") %>%
+arrange(desc(class)) %>%
 ggplot(aes(x=rna_fc, y=rpf_fc, color=class)) +
-geom_point(size=0.1)
+geom_abline(intercept = 0, slope = 1, color = "light grey") +  # Add diagonal line through origin
+geom_vline(xintercept=0, color = "light grey") +
+geom_hline(yintercept=0, color = "light grey") +
+geom_point(size=0.8, alpha=1) +
+scale_color_manual(values=colorblind_palette) +
+geom_text_repel(data = subset(joined, str_detect(gene_id, "XR") & class != "undetermined" & class != "forwarded"), aes(label = gene_id), box.padding = 0.5) +
+labs(x = expression("Log"[2] ~ "mRNA FC (TS/NTS)"), 
+y = expression("Log"[2] ~ "RPF FC (TS/NTS)"), color = "", alpha = "") +
+xlim(-max_fc, max_fc) +
+ylim(-max_fc, max_fc) +
+theme_bw() +
+guides(color = guide_legend(override.aes = list(size = 3)))
+
+
+
 
 b <- joined %>%
 filter(class != "undetermined") %>%
 filter(str_detect(gene_id, "XR")
 
+ggscatterhist(
+  joined, x = "rna_fc", y = "rpf_fc",
+  color = "class", size = 0.1, alpha = 0.6,
+  palette = c("#00AFBB", "#E7B800", "#FC4E07", "green", "blue"),
+  margin.params = list(fill = "class", color = "black", size = 0.2)
+  )
 
 # save(differential_expression,differential_rpf,differential_translation, file = paste(results_dir, "/deseq_output.RData", sep = ""))
