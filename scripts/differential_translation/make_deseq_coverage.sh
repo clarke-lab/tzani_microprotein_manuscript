@@ -22,12 +22,12 @@ readarray -t ribo_scale < <(cut -f 2 $deseq_out_dir/rpf_scale_factors.txt)
 for i in "${!sample_names[@]}"; do
 
 bamCoverage -b $rnaseq/${sample_names[i]}.bam \
-     -o $cov_dir/"${sample_names[i]}".rnaseq_deseq.bw \
+     -o $cov_dir/"${sample_names[i]}"_rnaseq_scaled.bw \
      --outFileFormat bigwig -bs 1 -p 70 --normalizeUsing None  \
      --skipNonCoveredRegions --scaleFactor ${rna_scale[i]}
 
 bamCoverage -b $riboseq/${sample_names[i]}.bam \
-     -o $cov_dir/"${sample_names[i]}".riboseq_scaled.bw \
+     -o $cov_dir/"${sample_names[i]}"_riboseq_scaled.bw \
      --outFileFormat bigwig -bs 1 -p 70 --normalizeUsing None  \
      --skipNonCoveredRegions --scaleFactor ${ribo_scale[i]}
 
