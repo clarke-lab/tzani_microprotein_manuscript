@@ -8,8 +8,8 @@
 pepquery_dir=proteomics/pepquery
 mkdir $pepquery_dir/results && pepquery_result=$_
 
-data_types=("lysate")
-search_types=("nterm")
+data_types=("drug_product" "lysate")
+search_types=("all" "nterm")
 
 source activate microprotein_process_env
 
