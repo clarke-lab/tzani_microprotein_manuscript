@@ -65,7 +65,7 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
 
   # select contrast
   if (type == "translation") {
-    res = results(dds, name = "conditionts.assayriboseq")
+    res = results(dds, name = "conditionts.assayriboseq", independentFiltering=FALSE)
   } else {
     print(resultsNames(dds))
     res <- results(dds, name= "condition_ts_vs_nts")
@@ -118,14 +118,14 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
       "padj" = padj.x,
       "symbol" = ncbi_symbol
     ) %>%
-    dplyr::select(symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
+    dplyr::select(geneid, symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
 
   # annotate new ORFs
   nc_sig_res <- sig_res %>%
     filter(str_detect(geneid, "NR|XR")) %>%
     mutate(symbol = "New", name = "New",
             GeneID = 0) %>%
-    dplyr::select(symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
+    dplyr::select(geneid, symbol, name, GeneID, baseMean, log2FoldChange, lfcSE,pvalue,padj)
 
   # complete the table of significant results
   sig_res <-

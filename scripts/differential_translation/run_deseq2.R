@@ -2,7 +2,8 @@
 #### Description: Use DESeq2 to finds
 ####              1. DE genes from the RNA-seq data
 ####              2. DE genes from the Ribo-seq data
-####              3. Differentiall translated genes  
+####              3. Differentially translated genes 
+####              4. Classify events
 #### Written by: NIBRT Clarke Lab. - colin.clarke@nibrt.ie
 
 ## 1. Prepare for analysis
@@ -76,82 +77,117 @@ base_mean_threshold <- 0
 average_counts <- 10
 
 # 1. differential gene expression
-differential_expression <-  run_deseq(count_data, sample_table,
+rna_deseq <-  run_deseq(count_data, sample_table,
 fold_change_threshold, pval_threshold, base_mean_threshold, average_counts,
 "rnaseq", CriGri_PICRH_1_0_annotation,mouse_feature_table)
 
 # 2. differential RPF 
-differential_rpf <-  run_deseq(count_data, sample_table, fold_change_threshold, 
+rpf_deseq <-  run_deseq(count_data, sample_table, fold_change_threshold, 
 pval_threshold, base_mean_threshold, average_counts,"riboseq", CriGri_PICRH_1_0_annotation, mouse_feature_table)
 
 # 3. differential translation efficency
-differential_translation <-  run_deseq(count_data,sample_table, fold_change_threshold, pval_threshold, base_mean_threshold, 
+te_deseq <-  run_deseq(count_data,sample_table, fold_change_threshold, pval_threshold, base_mean_threshold, 
 average_counts,"translation", CriGri_PICRH_1_0_annotation,mouse_feature_table)
 
+# write the scale factors to file to create coverage tracks
+scale_factors_rnaseq <- data.frame(colnames(rna_deseq$deseq_object),sizeFactors(rna_deseq$deseq_object)^-1)
+write_tsv(scale_factors_rnaseq, file = paste(results_dir, "rna_scale_factors.txt", sep = "/"), col_names =F)
+
+scale_factors_riboseq <- data.frame(colnames(rpf_deseq$deseq_object),sizeFactors(rpf_deseq$deseq_object)^-1)
+write_tsv(scale_factors_riboseq, file = paste(results_dir, "rpf_scale_factors.txt", sep = "/"), col_names =F)
+
+# save the deseq objects, res, and significant
+saveRDS(rna_deseq, file = paste(results_dir, "/rna_deseq.rds", sep = ""))
+saveRDS(rpf_deseq, file = paste(results_dir, "/rpf_deseq.rds", sep = ""))
+saveRDS(te_deseq, file = paste(results_dir, "/te_deseq.rds", sep = ""))
+
 ############################################################
-# 2. Assess deltaTE classes
+# 2. Delta TE
 ############################################################
 
-te_res <- differential_translation$deseq_res
-rna_res <- differential_expression$deseq_res[rownames(te_res),]
-rpf_res <- differential_rpf$deseq_res[rownames(te_res),]
+# classify regulation
+res_te <- te_deseq$deseq_res
+res_rna <- rna_deseq$deseq_res[rownames(res_te),]
+res_ribo <- rpf_deseq$deseq_res[rownames(res_te),]
 
-forwarded = rownames(te_res)[which(te_res$padj >= 0.05 & rpf_res$padj < 0.05 & rna_res$padj < 0.05)]  # transcription only
-exclusive = rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj < 0.05 & rna_res$padj >= 0.05)]  # translation only 
-both = rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj < 0.05 & rna_res$padj < 0.05)] # change in both transcription and translation
+transcriptional_select=which(res_te$padj >= 0.05 & 
+res_ribo$padj < 0.05 & abs(res_ribo$log2FoldChange) >= log2(fold_change_threshold) & 
+res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold))
 
-intensified = rownames(te_res[both[which(te_res[both,2]*rna_res[both,2] > 0)],]) # transcription only
+transcriptional = rownames(res_te)[transcriptional_select]
 
-buffered = rownames(te_res[both[which(te_res[both,2]*rna_res[both,2] < 0)],])
-buffered = c(rownames(te_res)[which(te_res$padj < 0.05 & rpf_res$padj >= 0.05 & rna_res$padj < 0.05)], buffered)
+translation_exclusive_select=which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold) & 
+res_ribo$padj < 0.05 & abs(res_ribo$log2FoldChange) >= log2(fold_change_threshold) &
+res_rna$padj >= 0.05)
+translation_exclusive = rownames(res_te)[translation_exclusive_select]
 
-rna_res <- rna_res[rownames(rpf_res),]
-joined <- bind_cols(rpf_fc = rpf_res$log2FoldChange, rna_fc =rna_res$log2FoldChange)
-joined <- joined %>% dplyr::mutate(gene_id=rownames(rpf_res))
+both = which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold) & 
+res_ribo$padj < 0.05 & abs(res_ribo$log2FoldChange) >= log2(fold_change_threshold) &
+res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold))
 
-joined <- joined %>%
+intensified = rownames(res_te)[both[which(res_te[both,2]*res_rna[both,2] > 0)]]
+buffered = rownames(res_te)[both[which(res_te[both,2]*res_rna[both,2] < 0)]]
+
+special_buffered_select=which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold ) &
+res_ribo$padj >= 0.05 & 
+res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold ))
+
+buffered = c(rownames(res_te)[special_buffered_select],buffered)
+
+# join the 3 results objects
+classified_deseq <- bind_cols(gene_id=rownames(res_rna), rna_fc =res_rna$log2FoldChange, rna_padj=res_rna$padj,
+rpf_fc = res_ribo$log2FoldChange, rpf_padj=res_ribo$padj,te_fc=res_te$log2FoldChange, te_pdj=res_te$padj)
+
+classified_events <- classified_deseq %>%
 mutate(class=case_when(
- gene_id %in% forwarded  ~ "forwarded",
- gene_id %in% exclusive  ~ "exclusive",
+ gene_id %in% transcriptional  ~ "forwarded",
+ gene_id %in% translation_exclusive  ~ "translation exclusive",
  gene_id %in% intensified  ~ "intensified",
  gene_id %in% buffered  ~ "buffered",
  TRUE ~ "undetermined"
 ))
 
-joined <- joined %>%
-summarise(pmax(rna_fc, rpf_fc))
-
-colorblind_palette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#999999")
-max_fc <- max(c(abs(joined$rna_fc), abs(joined$rpf_fc)), na.rm = T)
-max_fc =6
-joined %>%
-arrange(desc(class)) %>%
-ggplot(aes(x=rna_fc, y=rpf_fc, color=class)) +
-geom_abline(intercept = 0, slope = 1, color = "light grey") +  # Add diagonal line through origin
-geom_vline(xintercept=0, color = "light grey") +
-geom_hline(yintercept=0, color = "light grey") +
-geom_point(size=0.8, alpha=1) +
-scale_color_manual(values=colorblind_palette) +
-geom_text_repel(data = subset(joined, str_detect(gene_id, "XR") & class != "undetermined" & class != "forwarded"), aes(label = gene_id), box.padding = 0.5) +
-labs(x = expression("Log"[2] ~ "mRNA FC (TS/NTS)"), 
-y = expression("Log"[2] ~ "RPF FC (TS/NTS)"), color = "", alpha = "") +
-xlim(-max_fc, max_fc) +
-ylim(-max_fc, max_fc) +
-theme_bw() +
-guides(color = guide_legend(override.aes = list(size = 3)))
+saveRDS(classified_events, file = paste(results_dir, "/classified_events.rds", sep = ""))
 
 
 
+# colorblind_palette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#999999")
+# max_fc =max(abs(c(joined$rna_fc, joined$rpf_fc)))
 
-b <- joined %>%
-filter(class != "undetermined") %>%
-filter(str_detect(gene_id, "XR")
+# joined %>%
+# arrange(desc(class)) %>%
+# ggplot(aes(x=rna_fc, y=rpf_fc, color=class)) +
+# geom_abline(intercept = 0, slope = 1, color = "grey") +  # Add diagonal line through origin
+# geom_vline(xintercept=c(-log2(1.5),0, log2(1.5)), color = "grey") +
+# geom_hline(yintercept=c(-log2(1.5),0, log2(1.5)), color = "grey") +
+# geom_point(size=0.6, alpha=0.8) +
+# scale_color_manual(values=colorblind_palette) +
+# geom_text_repel(data = subset(joined, str_detect(gene_id, "XR") & class != "undetermined" & class != "forwarded"), aes(label = gene_id), box.padding = 0.5) +
+# labs(x = expression("Log"[2] ~ "mRNA FC (TS/NTS)"), 
+# y = expression("Log"[2] ~ "RPF FC (TS/NTS)"), color = "", alpha = "") +
+# xlim(-max_fc, max_fc) +
+# ylim(-max_fc, max_fc) +
+# theme_bw() +
+# guides(color = guide_legend(override.aes = list(size = 3)))
 
-ggscatterhist(
-  joined, x = "rna_fc", y = "rpf_fc",
-  color = "class", size = 0.1, alpha = 0.6,
-  palette = c("#00AFBB", "#E7B800", "#FC4E07", "green", "blue"),
-  margin.params = list(fill = "class", color = "black", size = 0.2)
-  )
+# b <- joined %>%
+# filter(class != "undetermined") %>%
+# filter(str_detect(gene_id, "XR|NR"))
 
-# save(differential_expression,differential_rpf,differential_translation, file = paste(results_dir, "/deseq_output.RData", sep = ""))
+# ggscatterhist(
+#   joined, x = "rna_fc", y = "rpf_fc",
+#   color = "class", size = 0.1, alpha = 0.6,
+#   palette = c("#00AFBB", "#E7B800", "#FC4E07", "green", "blue"),
+#   margin.params = list(fill = "class", color = "black", size = 0.2)
+#   )
+
+# # save(differential_expression,rpf_deseq,te_deseq, file = paste(results_dir, "/deseq_output.RData", sep = ""))
+
+
+# ggplot(data.frame(res_rna), aes(x = log2FoldChange, y = -log10(pvalue))) +
+#   geom_point(size=0.1) +
+#   geom_vline(xintercept = c(-log2(1.5), log2(1.5)), linetype = "dashed", color = "blue") +
+#   geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+#   scale_color_manual(values = c("black" = "black", "red" = "red")) +
+#   labs(x = "log2(Fold Change)", y = "-log10(p-value)", title = "Volcano Plot") +
+#   theme_minimal()
