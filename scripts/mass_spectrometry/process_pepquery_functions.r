@@ -108,9 +108,9 @@ import_pepquery <- function(pepquery_path, sample_type, region,
 }
 
 # import the metamorpheus canonical protein search results
-import_canonical <- function(study, product) {
+import_canonical <- function(type, study, sample) {
   
-  proteins <- read_delim(paste0("proteomics/metamorpheus/",study,"/",product,
+  proteins <- read_delim(paste0("proteomics/metamorpheus/", type, "/",study,"/",sample,
                                 "/Task3SearchTask/AllQuantifiedProteinGroups.tsv"), 
                          delim = "\t", escape_double = FALSE, show_col=F,
                          col_select = c(`Protein Accession`, `Gene`, 
@@ -122,30 +122,48 @@ import_canonical <- function(study, product) {
                                         `Number of Peptides`),
                          trim_ws = TRUE) %>% 
     filter(`Number of Peptides` > 1 & `Protein QValue` < 0.01) %>%
-    filter(!str_detect(replace_na(`Protein Full Name`, ''), "Keratin")) %>%
-    mutate(study=study, product=product) %>%
-    dplyr::select(study, product,`Protein Accession`, `Gene`, 
+    filter(!str_detect(replace_na(`Protein Full Name`, ''), "Keratin")) 
+    
+    if (type=="drug_product"){ 
+       proteins <- proteins %>%
+       mutate(study=study, product=sample) %>% 
+       dplyr::select(study, product,`Protein Accession`, `Gene`, 
                   `Protein Full Name`, `Organism`, `Number of PSMs`,
                   `Number of Peptides`,`Sequence Coverage Fraction`, 
                   `Protein QValue`) 
-  
-  allpsms <- read_delim(paste0("proteomics/metamorpheus/", study,"/",product,
+    } else {
+        proteins <- proteins %>% 
+        mutate(study=study, experiment=sample) %>% 
+        dplyr::select(study, experiment,`Protein Accession`, `Gene`, 
+                  `Protein Full Name`, `Organism`, `Number of PSMs`,
+                  `Number of Peptides`,`Sequence Coverage Fraction`, 
+                  `Protein QValue`) 
+    }
+   
+  allpsms <- read_delim(paste0("proteomics/metamorpheus/", type, "/", study,"/", sample,
                                "/Task3SearchTask/AllPSMs.psmtsv"), 
                         delim = "\t", escape_double = FALSE, 
                         trim_ws = TRUE, show_col_types = FALSE) %>%
     filter(`Protein Accession` %in% proteins$`Protein Accession`) %>%
-    filter(`PEP_QValue` < 0.01) %>%
-    mutate(study=study, product=product) %>%
+    filter(`PEP_QValue` < 0.01)
+
+    if (type=="drug_product"){  
+    allpsms <- allpsms %>%
+    mutate(study=study, product=sample) %>%
     dplyr::select(study,product,`File Name`, `Base Sequence`, `Full Sequence`,
                   `Peptide Monoisotopic Mass`, `Scan Retention Time`, 
                   `Precursor Charge`, `Protein Accession`) %>%
     mutate(`Peptide Monoisotopic Mass` = as.numeric(`Peptide Monoisotopic Mass`))
+    } else {
+    allpsms <- allpsms %>%
+    mutate(study=study, experiment=sample) %>%
+    dplyr::select(study,experiment,`File Name`, `Base Sequence`, `Full Sequence`,
+                  `Peptide Monoisotopic Mass`, `Scan Retention Time`, 
+                  `Precursor Charge`, `Protein Accession`) %>%
+    mutate(`Peptide Monoisotopic Mass` = as.numeric(`Peptide Monoisotopic Mass`))    
+    }
   
-  output <- list(
-    proteins=proteins,
-    psms=allpsms,
-    peptide_psms=peptide_psms
-  )
+  output <- list(proteins=proteins, psms=allpsms)
   
   return(output)
 }
@@ -196,15 +214,15 @@ add_peptide_mods <- function(mod_string, peptide) {
 # add the retention time required flashlfq for pepquery results
 add_retention_time <- function(sps, spectrum, type, filename, mz) {
   
-  mgf_file <- paste0("/mnt/HDD2/colin_work/microprotein_analysis/proteomics/pepquery/mgf_files/", type, "/", filename)
+  mgf_parent_dir= "/mnt/HDD2/colin_work/microprotein_analysis/proteomics/pepquery/mgf_files/"
+  mgf_file <- paste0(mgf_parent_dir, type, "/", filename)
   
   sps_sub <- filterDataOrigin(sps,dataOrigin=mgf_file)
   
   # convert to minutes for flashlfq
   retention_time = sps_sub[as.numeric(spectrum),]$rtime/60
   
-  print(round(mz,4) - round(sps_sub[as.numeric(spectrum),]$precursorMz,4))
-  print(class(round(sps_sub[as.numeric(spectrum),]$precursorMz,4)))
+  # compare the pepquery and mgf files to ensure the masses match
   if(round(mz,4) - round(sps_sub[as.numeric(spectrum),]$precursorMz,4) != 0) {
     print("masses don't match")
     

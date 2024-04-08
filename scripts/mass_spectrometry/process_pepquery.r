@@ -14,6 +14,12 @@ pepquery_path="proteomics/pepquery/"
 
 source("scripts/mass_spectrometry/process_pepquery_functions.r")
 
+# make a folder for id results
+protein_id_dir <- "proteomics/protein_identifications/"
+if (!dir.exists(protein_id_dir)) {
+  dir.create(protein_id_dir, recursive = TRUE)
+}
+
 # import peptide protein mapping
 pep_to_prot_map <- read_delim(paste0(pepquery_path, 
                                  "peptide_digestion/microprotein_peptide_mapping.csv"), 
@@ -75,7 +81,41 @@ paste0(length(drug_product_microproteins), " microprotein found in the drug prod
 drug_product_psms <- drug_product_psms %>%
   filter(protein %in% drug_product_microproteins)
 
+saveRDS(drug_product_psms, file = paste0(protein_id_dir,"microproteins_drug_product.rds"))
+
+# import the canonical proteins and psms
+studies <- c("tzani", "pythoud")
+
+canonical_proteins_drug_product <- data.frame()
+canonical_psms_drug_product <- data.frame()
+type="drug_product"
+for (study in studies) {
+  if (study == "tzani") {
+    samples= c("adalimumab", "denosumab", "pertuzumab","nivolumab", 
+               "vedolizumab", "etanercept")
+  } else {
+    samples = c("adalimumab", "bevacizumab" ,"nivolumab" ,"trastuzumab")
+  }
+  
+  for (sample in samples) {
+
+    imported_canonical <- import_canonical(type,study, sample)
+  
+    canonical_proteins_drug_product <- bind_rows(canonical_proteins_drug_product, imported_canonical$proteins)
+    canonical_psms_drug_product <- bind_rows(canonical_psms_drug_product, imported_canonical$psms)
+  
+  }
+}
+
+# output file containing protein identifications
+saveRDS(canonical_proteins_drug_product, file = paste0(protein_id_dir,"canonical_proteins_drug_product.rds"))
+  
 # preparate for flashlfq
+
+flashlfq_dir <- "proteomics/flashlfq/psm/drug_product"
+if (!dir.exists(flashlfq_dir)) {
+  dir.create(flashlfq_dir, recursive = TRUE)
+}
 
 # import the mgf files to enable extraction of retention time
 mgf_files <- list.files("proteomics/pepquery/mgf_files/drug_product/", pattern = "\\.mgf$", 
@@ -83,10 +123,60 @@ recursive = TRUE, full.names = TRUE)
 drug_product_sps <- Spectra(mgf_files, source = MsBackendMgf())
 
 # add the retention time and reformat the peptide modification string
-drug_product_psms  %>%
+dp_psms_mp_flfq <- drug_product_psms  %>%
   mutate(spectrum=gsub(":\\s*", "", str_extract(spectrum_title, ":\\s*([0-9]+)"))) %>%
-  mutate(filename=paste0(str_extract(spectrum_title,"^[^:]+"),".mgf")) %>%
+  mutate(filename=str_extract(spectrum_title,"^[^:]+")) %>%
   rowwise() %>%
   mutate(modified_peptide=add_peptide_mods(modification, peptide)) %>%
- filter(str_detect(modification,  "Acet"))
-  mutate(ret_time=add_retention_time(sps, spectrum, "drug_product", filename, mz)) 
+  mutate(ret_time=add_retention_time(drug_product_sps, spectrum, "drug_product", paste0(filename, ".mgf"), mz)) %>%
+  dplyr::select(study, product, filename,peptide, modified_peptide, pep_mass, ret_time, charge, protein) %>%
+  dplyr::rename(`File Name` = filename, `Base Sequence`= peptide, `Full Sequence`=modified_peptide,
+  `Peptide Monoisotopic Mass`= pep_mass, `Scan Retention Time` = ret_time, `Precursor Charge`=charge,
+  `Protein Accession` = protein)
+
+dp_psms_mp_flfq <- dp_psms_mp_flfq %>% 
+group_by(study, product) 
+  
+dp_psms_mp_flfq_names <- group_keys(dp_psms_mp_flfq) %>%
+    mutate(group_name = str_c(as.character(study),"_",product))
+  
+dp_psms_mp_flfq_names <- dp_psms_mp_flfq_names$group_name
+
+dp_psms_mp_flfq_list <- group_split(dp_psms_mp_flfq) %>%
+    setNames(dp_psms_mp_flfq_names)
+
+# make a list for the canonical hcps 
+
+dp_psms_canonical_flfq <- canonical_psms_drug_product %>% 
+group_by(study, product) 
+
+dp_psms_canonical_flfq_names <- group_keys(dp_psms_canonical_flfq) %>%
+mutate(group_name = str_c(as.character(study),"_",product))
+
+dp_psms_canonical_flfq_names <- dp_psms_canonical_flfq_names$group_name
+
+dp_psms_canonical_flfq_list <- group_split(dp_psms_canonical_flfq) %>%
+    setNames(dp_psms_canonical_flfq_names)
+
+for (set_name in dp_psms_mp_flfq_names) {
+    
+    current_psm_set <- bind_rows(dp_psms_mp_flfq_list[[set_name]], dp_psms_canonical_flfq_list[[set_name]]) %>%
+    mutate(`File Name`=paste0("proteomics/metamorpheus/drug_product/","/", study, "/", product ,"/Task2CalibrationTask/",`File Name`)) %>%
+    dplyr::select(-c(study, product))
+
+    write_tsv(current_psm_set, file = paste0(flashlfq_dir, "/", set_name, ".psms.tsv" ))
+}
+
+# import the lysate data 
+# import peptide protein mapping
+
+# import drug product pepquery psms
+lysate_psms <- bind_rows(import_pepquery(pepquery_path, "lysate", "all", pep_to_prot_map), 
+import_pepquery(pepquery_path, "lysate", "nterm", pep_to_prot_map))
+
+# check if duplicate spectra are indentified as acetylated & non-acetylated
+dup_spectra_check <- lysate_psms %>%
+ group_by(spectrum_title) %>%
+ summarise(duplicate_count = sum(duplicated(spectrum_title))) %>%
+  filter(duplicate_count > 0)
+print(paste0(dim(dup_spectra_check)[1], " spectra duplicated in the lysate search"))
