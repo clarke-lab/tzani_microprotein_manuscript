@@ -180,3 +180,109 @@ dup_spectra_check <- lysate_psms %>%
  summarise(duplicate_count = sum(duplicated(spectrum_title))) %>%
   filter(duplicate_count > 0)
 print(paste0(dim(dup_spectra_check)[1], " spectra duplicated in the lysate search"))
+
+# identify high confident psms for the tempshift proteomics
+confident_tempshift_psms <- lysate_psms %>%
+  filter(experiment=="tempshift") %>% 
+  distinct(condition, rep, protein,.keep_all = T)  %>% 
+  group_by(condition, protein) %>%
+  mutate(num_observations= n()) %>% 
+  filter(num_observations > 1) # found in at least 2 replicates
+
+paste0(dim(confident_tempshift_psms)[1], " psms confidently identified in the lysate tempshift data in at least 2 replicates per condition")
+
+paste0(length(unique(confident_tempshift_psms$protein)), " microproteins found in the lysate tempshift data")
+
+# identify high confident psms for the d4d7 proteomics
+confident_d4d7_psms <- lysate_psms %>%
+  filter(experiment=="d4d7") %>% 
+  distinct(condition, rep, protein,.keep_all = T)  %>% 
+  group_by(condition, protein) %>%
+  mutate(num_observations= n()) %>% 
+  filter(num_observations > 1) # found in at least 2 replicates
+
+paste0(dim(confident_d4d7_psms)[1], " psms confidently identified in the lysate d4d7 data in at least 2 replicates per condition")
+
+paste0(length(unique(confident_d4d7_psms$protein)), " microproteins found in the lysate d4d7 data")
+
+# find psms for microproteins across both experiments
+lysate_microproteins <- unique(c(confident_tempshift_psms$protein, confident_d4d7_psms$protein))
+
+paste0(length(lysate_microproteins), " microprotein found in the lysate data")
+
+# select all psms found for the lysate experiments. The microproteins were found separately,  
+# but if we find evidence of the existence of the microprotein in the other experiment via
+# a PSM in one replicate with consider this significant
+lysate_psms <- lysate_psms %>%
+  filter(protein %in% lysate_microproteins)
+
+saveRDS(lysate_psms, file = paste0(protein_id_dir,"microproteins_lysate.rds"))
+
+# import the lysate protein and psms
+tempshift_canonical <- import_canonical("lysate","tzani", "tempshift")
+d4d7_canonical <- import_canonical("lysate","tzani", "d4d7")
+
+canonical_proteins_lysate <- bind_rows(tempshift_canonical$protein, d4d7_canonical$protein)
+canonical_psms_lysate <- bind_rows(tempshift_canonical$psm, d4d7_canonical$psm)
+
+# output file containing protein identifications
+saveRDS(canonical_proteins_lysate, file = paste0(protein_id_dir,"canonical_proteins_lysate.rds"))
+imported_canonical <- import_canonical("lysate","tzani", "tempshift")
+
+# preparate for flashlfq
+
+flashlfq_dir <- "proteomics/flashlfq/psm/lysate"
+if (!dir.exists(flashlfq_dir)) {
+  dir.create(flashlfq_dir, recursive = TRUE)
+}
+
+# import the mgf files to enable extraction of retention time
+mgf_files <- list.files("proteomics/pepquery/mgf_files/lysate/", pattern = "\\.mgf$", 
+recursive = TRUE, full.names = TRUE)
+lysate_sps <- Spectra(mgf_files, source = MsBackendMgf())
+
+# add the retention time and reformat the peptide modification string
+lysate_psms_mp_flfq <- lysate_psms  %>%
+  mutate(spectrum=gsub(":\\s*", "", str_extract(spectrum_title, ":\\s*([0-9]+)"))) %>%
+  mutate(filename=str_extract(spectrum_title,"^[^:]+")) %>%
+  rowwise() %>%
+  mutate(modified_peptide=add_peptide_mods(modification, peptide)) %>%
+  mutate(ret_time=add_retention_time(lysate_sps, spectrum, "lysate", paste0(filename, ".mgf"), mz)) %>%
+  dplyr::select(experiment, filename, peptide, modified_peptide, pep_mass, ret_time, charge, protein) %>%
+  dplyr::rename(`File Name` = filename, `Base Sequence`= peptide, `Full Sequence`=modified_peptide,
+  `Peptide Monoisotopic Mass`= pep_mass, `Scan Retention Time` = ret_time, `Precursor Charge`=charge,
+  `Protein Accession` = protein)
+
+lys_psms_mp_flfq <- lysate_psms_mp_flfq %>% 
+group_by(experiment) 
+  
+lys_psms_mp_flfq_names <- group_keys(lys_psms_mp_flfq) %>%
+    mutate(group_name = experiment)
+  
+lys_psms_mp_flfq_names <- lys_psms_mp_flfq_names$group_name
+
+lys_psms_mp_flfq_list <- group_split(lys_psms_mp_flfq) %>%
+    setNames(lys_psms_mp_flfq_names)
+
+# make a list for the canonical hcps 
+
+lys_psms_canonical_flfq <- canonical_psms_lysate %>%
+select(-study) %>%
+group_by(experiment) 
+
+lys_psms_canonical_flfq_names <- group_keys(lys_psms_canonical_flfq) %>%
+mutate(group_name = experiment)
+
+lys_psms_canonical_flfq_names <- lys_psms_canonical_flfq_names$group_name
+
+lys_psms_canonical_flfq_list <- group_split(lys_psms_canonical_flfq) %>%
+    setNames(lys_psms_canonical_flfq_names)
+
+for (set_name in lys_psms_mp_flfq_names) {
+    
+    current_psm_set <- bind_rows(lys_psms_mp_flfq_list[[set_name]], lys_psms_canonical_flfq_list[[set_name]]) %>%
+    mutate(`File Name`=paste0("proteomics/metamorpheus/lysate/tzani/", experiment,"/Task2CalibrationTask/",`File Name`)) %>%
+    dplyr::select(-c(experiment))
+
+    write_tsv(current_psm_set, file = paste0(flashlfq_dir, "/", set_name, ".psms.tsv" ))
+}
