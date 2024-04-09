@@ -12,7 +12,7 @@ suppressMessages(invisible(lapply(package_list, require, character.only = TRUE))
 
 pepquery_path="proteomics/pepquery/"
 
-source("scripts/mass_spectrometry/process_pepquery_functions.r")
+source("scripts/mass_spectrometry/process_pepquery_functions.R")
 
 # make a folder for id results
 protein_id_dir <- "proteomics/protein_identifications/"
@@ -284,5 +284,5 @@ for (set_name in lys_psms_mp_flfq_names) {
     mutate(`File Name`=paste0("proteomics/metamorpheus/lysate/tzani/", experiment,"/Task2CalibrationTask/",`File Name`)) %>%
     dplyr::select(-c(experiment))
 
-    write_tsv(current_psm_set, file = paste0(flashlfq_dir, "/", set_name, ".psms.tsv" ))
+    write_tsv(current_psm_set, file = paste0(flashlfq_dir, "/tzani_", set_name, ".psms.tsv" ))
 }
