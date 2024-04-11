@@ -1,7 +1,13 @@
+#!/usr/bin/env Rscript --vanilla
+
+# Author: Colin Clarke
+# Date:   2024-02-06
+# Purpose: replicate results for section 2.1 of the manuscript
+
 ## ----setup----------------------------------------------------------------------------------------------------------------------------------------
 package_list <- c("tidyverse", "writexl", "ggpubr", "viridis")
 
-lapply(package_list, require, character.only = TRUE)
+suppressMessages(lapply(package_list, require, character.only = TRUE))
 
 options(dplyr.summarise.inform = FALSE)
 
@@ -34,10 +40,12 @@ initiation_ts_delta <- cd_summary %>%
   filter(Experiment == "Initiation") %>%
   summarise(`CD diff` = 100 - round((mean_density[condition == "TS"] / mean_density[condition == "NTS"]) * 100))
 
+paste0("Approx. ", initiation_ts_delta$`CD diff`, "% cell density reduction in CD in TS samples")
+
 paste0("___________________________________________________________________________________ ")
 paste0("                         Elongation experiment.                                    ")
 paste0("___________________________________________________________________________________")
-paste0("Approx. ", initiation_ts_delta$`CD diff`, "% cell density reduction in CD in TS samples")
+
 
 elongation_ts_delta <- cd_summary %>%
   filter(Experiment == "Elongation") %>%
@@ -321,19 +329,14 @@ rnaseq_phasing <- read_delim(paste0(phasing_path, "rnaseq_se_phasing.txt"),
   mutate(ribotype = "RNA-seq")
 
 paste0("___________________________________________________________________________________")
-paste0("                        Cycloheximide Ribo-seq 28-31nt Phasing                     ")
+paste0("                        Ribo-seq 28-31nt Phasing                     ")
 paste0("___________________________________________________________________________________")
-paste0("Approx. ", round(riboseq_chx_phasing$`0`*100), "% of reads are in phase")
+paste0("Approx. ", round(riboseq_chx_phasing$`0`*100), "% of CHX Ribo-seq reads are in phase")
 
-paste0("__________________________________________________________________________________ ")
-paste0("                        Harringtonine Ribo-seq 28-31nt Phasing                     ")
-paste0("___________________________________________________________________________________")
-paste0("Approx. ", round(riboseq_harr_phasing$`0`*100), "% of reads are in phase")
+paste0("Approx. ", round(riboseq_harr_phasing$`0`*100), "% of HARR Ribo-seqreads are in phase")
 
-paste0("__________________________________________________________________________________ ")
-paste0("                           No drug Ribo-seq 28-31nt Phasing phasing                ")
+paste0("Approx. ", round(riboseq_nd_phasing$`0`*100), "% of ND Ribo-seq reads are in phase")
 paste0("___________________________________________________________________________________")
-paste0("Approx. ", round(riboseq_nd_phasing$`0`*100), "% of reads are in phase")
 
 bind_rows(riboseq_chx_phasing, riboseq_harr_phasing, riboseq_nd_phasing, rnaseq_phasing) %>%
   pivot_longer(cols = c(`0`, `1`, `2`), values_to = "Proportion") %>%
