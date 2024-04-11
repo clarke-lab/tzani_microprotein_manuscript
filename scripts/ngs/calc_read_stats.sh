@@ -9,7 +9,7 @@
 
 # 1. count the raw reads
 mkdir -p sequencing/stats/read_counts && count_dir=$_
-for seqtype in riboseq_chx riboseq_harr riboseq_nd
+for seqtype in riboseq_chx riboseq_harr riboseq_nd rnaseq_se
 do
     for f in sequencing/$seqtype/raw_data/*fastq.gz; 
         do echo -ne "$f\t"  && echo $(($(zcat $f | echo $((`wc -l`/4))))); 
@@ -65,3 +65,5 @@ do
         done
     fi
 done
+
+find $count_dir/*.counts -type f -exec cat {} \; > $count_dir/combined_counts.txt
