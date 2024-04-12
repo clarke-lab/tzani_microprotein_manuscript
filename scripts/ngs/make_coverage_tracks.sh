@@ -37,31 +37,19 @@ do
      -o $merged_dir/"$seqtype"_psite_transcriptome_coverage
   fi
 
+  # make coverage files for CHX and RNASeq files without a p-site offset
+  # using deeptools 
   if [ "$seqtype" == "riboseq_chx" ] || [ "$seqtype" == "rnaseq_se" ]; then
-  make_wiggle \
-    --count_files sequencing/$seqtype/mapped/merged/$seqtype"Aligned.toTranscriptome.out.sorted.bam" \
-    --countfile_format BAM \
-    --fiveprime \
-    --offset 0 \
-    --output_format bedgraph \
-    -o $merged_dir/"$seqtype"_full_transcriptome_coverage
+    
+    bamCoverage -b sequencing/$seqtype/mapped/merged/"$seqtype"Aligned.toTranscriptome.out.sorted.bam \
+    -o $merged_dir/"$seqtype"_full_transcriptome_coverage.wig \
+    --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
+
   fi
 
 done
 
-conda deactivate
-
-# full coverage CHX track
-
-bamCoverage -b sequencing/riboseq_chx/mapped/merged/riboseq_chxAligned.toTranscriptome.out.sorted.bam \
- -o $merged_dir/riboseq_chx_full_transcriptome_coverage.wig \
- --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
-
-bamCoverage -b sequencing/rnaseq_se/mapped/merged/rnaseq_seAligned.toTranscriptome.out.sorted.bam \
- -o $merged_dir/rnaseq_se_full_transcriptome_coverage.wig \
- --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
-
-# # extract selected transcripts plotting
+# function to extract regions of interest
 
 extract_transcript_coverage() {
     local transcript="$1"
@@ -77,30 +65,43 @@ extract_transcript_coverage() {
     grep "$transcript" "$in_file" > $out_dir/"$transcript"_"$out_file"
 }
 
-chx_transcriptome_p_fw="$merged_dir"/riboseq_chx_psite_transcriptome_coverage_fw.wig
-chx_transcriptome_p_rc=$merged_dir/riboseq_chx_psite_transcriptome_coverage_rc.wig
+# plastid p-site offset files (forward and negative)
+# chx
+chx_p_fw="$merged_dir"/riboseq_chx_psite_transcriptome_coverage_fw.wig
+chx_p_rc=$merged_dir/riboseq_chx_psite_transcriptome_coverage_rc.wig
 
-chx_transcriptome_f_fw=$merged_dir/riboseq_chx_full_transcriptome_coverage.wig
+# harr
+harr_p_fw=$merged_dir/riboseq_harr_psite_transcriptome_coverage_fw.wig
+harr_p_rc=$merged_dir/riboseq_harr_psite_transcriptome_coverage_rc.wig
 
+# nd
+harr_p_fw=$merged_dir/riboseq_harr_psite_transcriptome_coverage_fw.wig
+harr_p_rc=$merged_dir/riboseq_harr_psite_transcriptome_coverage_rc.wig
 
+# deeptools full coverage
+# full coverage (non-offset)
+chx_f=$merged_dir/riboseq_chx_full_transcriptome_coverage.wig
+rnaseq_f=$merged_dir/rnaseq_se_full_transcriptome_coverage.wig
 
-harr_transcriptome_p_fw=$merged_dir/riboseq_harr_psite_transcriptome_coverage_fw.wig
-harr_transcriptome_p_rc=$merged_dir/riboseq_harr_psite_transcriptome_coverage_rc.wig
-
-nd_transcriptome_p_fw=$merged_dir/riboseq_nd_psite_transcriptome_coverage_fw.wig
-nd_transcriptome_p_rc=$merged_dir/riboseq_nd_psite_transcriptome_coverage_rc.wig
-
-rnaseq_transcriptome_f_fw=$merged_dir/rnaseq_se_full_transcriptome_coverage.wig
-
-
-# Fig2b
+# Fig2b (AURKA  n-terminal extension)
 mkdir $merged_dir/fig2b && fig2b=$_
 
-extract_transcript_coverage 'XM_027423276.2' "$chx_transcriptome_p_fw" $fig2b 'chx_p_transcriptome.wig'
-extract_transcript_coverage 'XM_027423276.2' $chx_transcriptome_f_fw $fig2b 'chx_f_transcriptome.wig'
-extract_transcript_coverage 'XM_027423276.2' $harr_transcriptome_p_fw $fig2b 'harr_p_transcriptome.wig'
-extract_transcript_coverage 'XM_027423276.2' $nd_transcriptome_p_fw $fig2b 'nd_p_transcriptome.wig'
-extract_transcript_coverage 'XM_027423276.2' $rnaseq_transcriptome_f_fw $fig2b 'rnaseq_f_transcriptome.wig'
+extract_transcript_coverage 'XM_027423276.2' \
+$harr_transcriptome_p_fw $fig2b 'harr_p.wig'
+
+extract_transcript_coverage 'XM_027423276.2' \
+$nd_transcriptome_p_fw $fig2b 'nd_p.wig'
+
+extract_transcript_coverage 'XM_027423276.2' \
+"$chx_p_fw" $fig2b 'chx_p.wig'
+
+extract_transcript_coverage 'XM_027423276.2' $chx_f \
+$fig2b 'chx_f.wig'
+
+extract_transcript_coverage 'XM_027423276.2' \
+$rnaseq_transcriptome_f_fw $fig2b 'rnaseq_f.wig'
+
+conda deactivate
 
 # # Fig3d
 # mkdir $merged_dir/fig3d && fig3d=$_
