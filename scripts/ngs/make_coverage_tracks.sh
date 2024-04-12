@@ -52,50 +52,55 @@ done
 conda deactivate
 
 # full coverage CHX track
-# make_wiggle \
-#      --count_files sequencing/riboseq_chx/mapped/merged/riboseq_chxAligned.toTranscriptome.out.sorted.bam \
-#      --countfile_format BAM \
-#      --fiveprime \
-#      --offset 0 \
-#      --output_format bedgraph \
-#      -o $merged_dir/riboseq_chx.full.transcriptome.nonorm.bedgraph 
 
-# bamCoverage -b sequencing/riboseq_chx/mapped/merged/riboseq_chxAligned.toTranscriptome.out.sorted.bam \
-# -o $merged_dir/chx.fullcov.transcriptome.wig \
-# --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
+bamCoverage -b sequencing/riboseq_chx/mapped/merged/riboseq_chxAligned.toTranscriptome.out.sorted.bam \
+ -o $merged_dir/riboseq_chx_full_transcriptome_coverage.wig \
+ --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
+
+bamCoverage -b sequencing/rnaseq_se/mapped/merged/rnaseq_seAligned.toTranscriptome.out.sorted.bam \
+ -o $merged_dir/rnaseq_se_full_transcriptome_coverage.wig \
+ --outFileFormat bedgraph -bs 1 -p 70 --normalizeUsing CPM --smoothLength 25
 
 # # extract selected transcripts plotting
 
-# extract_transcript_coverage() {
-#     local transcript="$1"
-#     local in_file="$2"   
-#     local out_dir="$3"
-#     local out_file="$4"
+extract_transcript_coverage() {
+    local transcript="$1"
+    local in_file="$2"   
+    local out_dir="$3"
+    local out_file="$4"
  
-#     if [ ! -f "$in_file" ]; then
-#         echo "Error: File '$in_file' not found."
-#         return 1
-#     fi
+    if [ ! -f "$in_file" ]; then
+        echo "Error: File '$in_file' not found."
+        return 1
+    fi
 
-#     grep "$transcript" "$in_file" > $out_dir/"$transcript"_"$out_file"
-# }
+    grep "$transcript" "$in_file" > $out_dir/"$transcript"_"$out_file"
+}
 
-# chx_transcriptome_p_fw="$merged_dir"/riboseq_chx.psite.transcriptome.nonorm.bedgraph_fw.wig
-# chx_transcriptome_p_rc=$merged_dir/riboseq_chx.psite.transcriptome.nonorm.bedgraph_rc.wig
+chx_transcriptome_p_fw="$merged_dir"/riboseq_chx_psite_transcriptome_coverage_fw.wig
+chx_transcriptome_p_rc=$merged_dir/riboseq_chx_psite_transcriptome_coverage_rc.wig
 
-# chx_transcriptome_f_fw=$merged_dir/chx.fullcov.transcriptome.wig
-# harr_transcriptome_p_fw=$merged_dir/riboseq_harr.psite.transcriptome.nonorm.bedgraph_fw.wig
-# harr_transcriptome_p_rc=$merged_dir/riboseq_harr.psite.transcriptome.nonorm.bedgraph_rc.wig
-# nd_transcriptome_p_fw=$merged_dir/riboseq_nd.psite.transcriptome.nonorm.bedgraph_fw.wig
-# nd_transcriptome_p_rc=$merged_dir/riboseq_nd.psite.transcriptome.nonorm.bedgraph_rc.wig
+chx_transcriptome_f_fw=$merged_dir/riboseq_chx_full_transcriptome_coverage.wig
 
-# # Fig2b
-# mkdir $merged_dir/fig2b && fig2b=$_
 
-# extract_transcript_coverage 'XM_027423276.2' "$chx_transcriptome_p_fw" $fig2b 'chx_p_transcriptome.wig'
-# extract_transcript_coverage 'XM_027423276.2' $chx_transcriptome_f_fw $fig2b 'chx_f_transcriptome.wig'
-# extract_transcript_coverage 'XM_027423276.2' $harr_transcriptome_p_fw $fig2b 'harr_p_transcriptome.wig'
-# extract_transcript_coverage 'XM_027423276.2' $nd_transcriptome_p_fw $fig2b 'nd_p_transcriptome.wig'
+
+harr_transcriptome_p_fw=$merged_dir/riboseq_harr_psite_transcriptome_coverage_fw.wig
+harr_transcriptome_p_rc=$merged_dir/riboseq_harr_psite_transcriptome_coverage_rc.wig
+
+nd_transcriptome_p_fw=$merged_dir/riboseq_nd_psite_transcriptome_coverage_fw.wig
+nd_transcriptome_p_rc=$merged_dir/riboseq_nd_psite_transcriptome_coverage_rc.wig
+
+rnaseq_transcriptome_f_fw=$merged_dir/rnaseq_se_full_transcriptome_coverage.wig
+
+
+# Fig2b
+mkdir $merged_dir/fig2b && fig2b=$_
+
+extract_transcript_coverage 'XM_027423276.2' "$chx_transcriptome_p_fw" $fig2b 'chx_p_transcriptome.wig'
+extract_transcript_coverage 'XM_027423276.2' $chx_transcriptome_f_fw $fig2b 'chx_f_transcriptome.wig'
+extract_transcript_coverage 'XM_027423276.2' $harr_transcriptome_p_fw $fig2b 'harr_p_transcriptome.wig'
+extract_transcript_coverage 'XM_027423276.2' $nd_transcriptome_p_fw $fig2b 'nd_p_transcriptome.wig'
+extract_transcript_coverage 'XM_027423276.2' $rnaseq_transcriptome_f_fw $fig2b 'rnaseq_f_transcriptome.wig'
 
 # # Fig3d
 # mkdir $merged_dir/fig3d && fig3d=$_
