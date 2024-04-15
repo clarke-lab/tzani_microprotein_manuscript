@@ -118,5 +118,7 @@ for (product in products) {
   # calculate the quantity of the microproteins using the standard
   microprotein_quantitation[[product]] <- microprotein_flash_lfq
 
-  print(cbind(microprotein_quantitation[[product]]$ppm,microprotein_quantitation[[product]]$`Protein Accession`))
+  print(cbind(microprotein_quantitation[[product]]$`Protein Accession`, microprotein_quantitation[[product]]$ppm))
 }
+
+saveRDS(microprotein_quantitation, file="proteomics/flashlfq/result/drug_product/tzani_mp_quant.rds")
