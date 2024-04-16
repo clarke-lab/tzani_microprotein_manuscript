@@ -79,7 +79,7 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
       abs(log2FoldChange) >= log2(fold_change_threshold) &
         padj < pval_threshold & baseMean >= base_mean_threshold
     )
-
+  
   # annotate protein coding genes if possible using cgr ncbi 
   pcg_sig_res <- sig_res %>%
     filter(!str_detect(geneid, "NR|XR")) %>%
