@@ -90,10 +90,15 @@ te_deseq <-  run_deseq(count_data,sample_table, fold_change_threshold, pval_thre
 average_counts,"translation", CriGri_PICRH_1_0_annotation,mouse_feature_table)
 
 # write the scale factors to file to create coverage tracks
-scale_factors_rnaseq <- data.frame(colnames(rna_deseq$deseq_object),sizeFactors(rna_deseq$deseq_object)^-1)
+
+scale_factors <- sizeFactors(te_deseq$deseq_object) %>% 
+as_tibble(rownames="sample") %>%
+ mutate(value = (value^-1))
+
+scale_factors_rnaseq <-scale_factors %>% filter(str_detect(sample "rnaseq"))
 write_tsv(scale_factors_rnaseq, file = paste(results_dir, "rna_scale_factors.txt", sep = "/"), col_names =F)
 
-scale_factors_riboseq <- data.frame(colnames(rpf_deseq$deseq_object),sizeFactors(rpf_deseq$deseq_object)^-1)
+scale_factors_rnaseq <-scale_factors %>% filter(str_detect(sample "riboseq"))
 write_tsv(scale_factors_riboseq, file = paste(results_dir, "rpf_scale_factors.txt", sep = "/"), col_names =F)
 
 # save the deseq objects, res, and significant
@@ -110,10 +115,13 @@ res_te <- te_deseq$deseq_res
 res_rna <- rna_deseq$deseq_res[rownames(res_te),]
 res_ribo <- rpf_deseq$deseq_res[rownames(res_te),]
 
+
+
+
+fold_change_threshold <- 1.5
 transcriptional_select=which(res_te$padj >= 0.05 & 
 res_ribo$padj < 0.05 & abs(res_ribo$log2FoldChange) >= log2(fold_change_threshold) & 
 res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold))
-
 transcriptional = rownames(res_te)[transcriptional_select]
 
 translation_exclusive_select=which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold) & 
@@ -128,7 +136,7 @@ res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold)
 intensified = rownames(res_te)[both[which(res_te[both,2]*res_rna[both,2] > 0)]]
 buffered = rownames(res_te)[both[which(res_te[both,2]*res_rna[both,2] < 0)]]
 
-special_buffered_select=which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold ) &
+special_buffered_select=which(res_te$padj < 0.05 & abs(res_te$log2FoldChange) >= log2(fold_change_threshold) &
 res_ribo$padj >= 0.05 & 
 res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold ))
 
@@ -136,7 +144,7 @@ buffered = c(rownames(res_te)[special_buffered_select],buffered)
 
 # join the 3 results objects
 classified_deseq <- bind_cols(gene_id=rownames(res_rna), rna_fc =res_rna$log2FoldChange, rna_padj=res_rna$padj,
-rpf_fc = res_ribo$log2FoldChange, rpf_padj=res_ribo$padj,te_fc=res_te$log2FoldChange, te_pdj=res_te$padj)
+rpf_fc = res_ribo$log2FoldChange, rpf_padj=res_ribo$padj,te_fc=res_te$log2FoldChange, te_padj=res_te$padj)
 
 classified_events <- classified_deseq %>%
 mutate(class=case_when(
@@ -146,6 +154,8 @@ mutate(class=case_when(
  gene_id %in% buffered  ~ "buffered",
  TRUE ~ "undetermined"
 ))
+
+print(table(classified_events$class))
 
 saveRDS(classified_events, file = paste(results_dir, "/classified_events.rds", sep = ""))
 
