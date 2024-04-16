@@ -95,11 +95,11 @@ scale_factors <- sizeFactors(te_deseq$deseq_object) %>%
 as_tibble(rownames="sample") %>%
  mutate(value = (value^-1))
 
-scale_factors_rnaseq <-scale_factors %>% filter(str_detect(sample "rnaseq"))
-write_tsv(scale_factors_rnaseq, file = paste(results_dir, "rna_scale_factors.txt", sep = "/"), col_names =F)
+scale_factors_rnaseq <-scale_factors %>% filter(str_detect(sample, "rnaseq"))
+write_tsv(scale_factors_rnaseq, file = paste(results_dir, "joint_rna_scale_factors.txt", sep = "/"), col_names =F)
 
-scale_factors_rnaseq <-scale_factors %>% filter(str_detect(sample "riboseq"))
-write_tsv(scale_factors_riboseq, file = paste(results_dir, "rpf_scale_factors.txt", sep = "/"), col_names =F)
+scale_factors_riboseq <-scale_factors %>% filter(str_detect(sample, "riboseq"))
+write_tsv(scale_factors_riboseq, file = paste(results_dir, "joint_rpf_scale_factors.txt", sep = "/"), col_names =F)
 
 # save the deseq objects, res, and significant
 saveRDS(rna_deseq, file = paste(results_dir, "/rna_deseq.rds", sep = ""))
