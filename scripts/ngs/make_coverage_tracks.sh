@@ -50,7 +50,6 @@ do
 done
 
 # function to extract regions of interest
-
 extract_transcript_coverage() {
     local transcript="$1"
     local in_file="$2"   
