@@ -13,7 +13,7 @@
 
 conda activate microprotein_process_env
 
-mkdir differential_translation && dt_dir=$_
+# mkdir differential_translation && dt_dir=$_
 mkdir differential_translation/plastid_reference && plastid_ref=$_
 orfid_dir=orf_identification
 
@@ -37,9 +37,9 @@ rm $plastid_ref/annotated_protein_coding.tmp.gtf
 #--bed diff_translation_analysis/cgr_reference.bed
 
 # selected novel ofs comes from R - filtered for potential false positive "new" annotation
- grep -f $orfid_dir/orf_filtered/lncrna_novel_orfs.txt \
+ grep -f $orfid_dir/orf_filtered/lncrna_novel_sorfs.txt \
  $orfid_dir/orfrater/orfrater_annotation.gtf > \
- $plastid_ref/lncrna_orfs.gtf
+ $plastid_ref/lncrna_sorfs.gtf
 
 # convert to bed format
 # grep -f diff_translation_analysis/selected_novel_orfs.txt \
@@ -47,7 +47,7 @@ rm $plastid_ref/annotated_protein_coding.tmp.gtf
 #  diff_translation_analysis/cgr_new_orfs.bed
 
 # join the reference and novel annotations
- cat $plastid_ref/lncrna_orfs.gtf \
+ cat $plastid_ref/lncrna_sorfs.gtf \
  $plastid_ref/annotated_protein_coding.gtf > \
  $plastid_ref/extended_orf_annotation.gtf
 
