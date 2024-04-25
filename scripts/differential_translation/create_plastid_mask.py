@@ -7,7 +7,7 @@ fout_stop = open("differential_translation/plastid_reference/stop_codon_masks.be
 
 for feature in transcript_reader:
   cds = feature.get_cds()
-  if cds.get_length() <= 300: # for small proteins exclude first and last codon
+  if cds.get_length() < 300: # for small proteins exclude first and last codon
     # print(feature.get_name(),feature.attr["type"],str(feature)) # do something
     # print(cds.get_length()) 
     start_codon_mask = list(cds.get_subchain(0,3))
