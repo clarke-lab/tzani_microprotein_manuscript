@@ -122,3 +122,4 @@ for (product in products) {
 }
 
 saveRDS(microprotein_quantitation, file="proteomics/flashlfq/result/drug_product/tzani_mp_quant.rds")
+saveRDS(canonical_quantitation, file="proteomics/flashlfq/result/drug_product/tzani_canonical_quant.rds")
