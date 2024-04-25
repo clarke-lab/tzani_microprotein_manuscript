@@ -668,7 +668,8 @@ selected_new_for_ts_de <- orftable_final %>%
   filter(`ORF type` == "New") %>%
   filter(str_detect(`ORF-RATER name`, "NR_|XR_")) %>%
   group_by(`Transcript ID`) %>%
+  filter(`Length (AAs)` < 100) %>%
   top_n(`Length (AAs)`, n = 1)
 
 write(selected_new_for_ts_de$`ORF-RATER name`, 
-file = paste0(out_dir,"lncrna_novel_orfs.txt"))
+file = paste0(out_dir,"lncrna_novel_sorfs.txt"))
