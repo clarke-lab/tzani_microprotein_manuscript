@@ -118,7 +118,7 @@ res_ribo <- rpf_deseq$deseq_res[rownames(res_te),]
 
 
 
-fold_change_threshold <- 1.5
+fold_change_threshold <- 0
 transcriptional_select=which(res_te$padj >= 0.05 & 
 res_ribo$padj < 0.05 & abs(res_ribo$log2FoldChange) >= log2(fold_change_threshold) & 
 res_rna$padj < 0.05 & abs(res_rna$log2FoldChange) >= log2(fold_change_threshold))
