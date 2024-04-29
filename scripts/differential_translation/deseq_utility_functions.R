@@ -84,7 +84,7 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
   pcg_sig_res <- sig_res %>%
     filter(!str_detect(geneid, "NR|XR")) %>%
     mutate(symbol = gsub("_.*", "", geneid)) %>%
-    left_join(CriGri_PICRH_1_0_annotation, by = "symbol") %>%
+    left_join(CriGri_PICRH_1_0_annotation, by = "symbol", relationship = "many-to-many") %>%
     filter(`# feature` == "mRNA") %>%
     mutate(name = gsub(",.*", "", name)) %>%
     distinct(geneid, .keep_all = T) %>%
@@ -106,7 +106,7 @@ CriGri_PICRH_1_0_annotation,mouse_feature_table) {
 
   pcg_with_loc_ids <- pcg_with_loc_ids %>%
     mutate("symbol.y" = symbol) %>%
-    left_join(loc_id_gene_symbol, by = "symbol.y") %>%
+    left_join(loc_id_gene_symbol, by = "symbol.y", relationship = "many-to-many") %>%
     mutate(ncbi_symbol = coalesce(ncbi_symbol, symbol.y)) %>%
     mutate(
       "geneid" = geneid.x,
