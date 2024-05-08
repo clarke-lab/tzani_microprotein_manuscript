@@ -27,7 +27,7 @@ crap=reference_proteome/crap.fasta
 mkdir proteomics/metamorpheus
 metamorpheus_dir=proteomics/metamorpheus
 
-types=("drug_product" "lysate")
+types=("drug_product")
 
 for type in "${types[@]}"; do 
 
@@ -35,7 +35,7 @@ for type in "${types[@]}"; do
 
     if [ $type == "drug_product" ]; then
         
-        studies=("tzani" "pythoud")
+        studies=("pythoud")
                 
     elif [ "$type" == "lysate" ]; then
         
@@ -72,36 +72,44 @@ for type in "${types[@]}"; do
                 mab=data/protein_sequences/mabs/"$sample".fasta
 
                 metamorpheus \
-                -t data/metamorpheus/Task1-SearchTaskconfig.toml \
-                data/metamorpheus/Task2-CalibrateTaskconfig.toml \
-                data/metamorpheus/Task3-SearchTaskconfig.toml \
+                -t data/metamorpheus/Task1-SearchTaskconfig_reducing.toml \
+                data/metamorpheus/Task2-CalibrateTaskconfig_reducing.toml \
+                data/metamorpheus/Task3-SearchTaskconfig_reducing.toml \
                 -s $raw_dir \
                 -d $uniprot $crap $mab $quant_standard \
                 -o $metamorpheus_dir/$type/$study/$sample
 
             elif [ "$study" == "pythoud" ] && [ "$type" == "drug_product" ]; then
 
-                raw_dir=proteomics/raw_files/$type/$study/$sample
+                prep_types=("native" "reducing")
+
+                for prep_type in "${prep_types[@]}"; do
+
+                mkdir -p $metamorpheus_dir/$type/$study/$sample/$prep_type
+
+                raw_dir=proteomics/raw_files/$type/$study/$sample/$prep_type
                 quant_standard=data/protein_sequences/standards/massprep_standard.fasta
                 irt_standard=data/protein_sequences/standards/irt_standard.fasta
                 mab=data/protein_sequences/mabs/"$sample".fasta
 
                 metamorpheus \
-                -t data/metamorpheus/Task1-SearchTaskconfig.toml \
-                data/metamorpheus/Task2-CalibrateTaskconfig.toml \
-                data/metamorpheus/Task3-SearchTaskconfig.toml \
+                -t data/metamorpheus/Task1-SearchTaskconfig_"$prep_type".toml \
+                data/metamorpheus/Task2-CalibrateTaskconfig_"$prep_type".toml \
+                data/metamorpheus/Task3-SearchTaskconfig_"$prep_type".toml \
                 -s $raw_dir \
                 -d $uniprot $crap $mab $quant_standard $irt_standard \
-                -o $metamorpheus_dir/$type/$study/$sample
+                -o $metamorpheus_dir/$type/$study/$sample/$prep_type
+                
+                done
 
             elif [ "$study" == "tzani" ] && [ "$type" == "lysate" ]; then
                 
                 raw_dir=proteomics/raw_files/$type/$study/$sample
 
                 metamorpheus \
-                -t data/metamorpheus/Task1-SearchTaskconfig.toml \
-                data/metamorpheus/Task2-CalibrateTaskconfig.toml \
-                data/metamorpheus/Task3-SearchTaskconfig.toml \
+                -t data/metamorpheus/Task1-SearchTaskconfig_reducing.toml \
+                data/metamorpheus/Task2-CalibrateTaskconfig_reducing.toml \
+                data/metamorpheus/Task3-SearchTaskconfig_reducing.toml \
                 -s $raw_dir \
                 -d $uniprot $crap \
                 -o $metamorpheus_dir/$type/$study/$sample
