@@ -100,6 +100,29 @@ $fig2b 'chx_f.wig'
 extract_transcript_coverage 'XM_027423276.2' \
 $rnaseq_transcriptome_f_fw $fig2b 'rnaseq_f.wig'
 
+# Fig3d
+mkdir $merged_dir/fig3d && fig3d=$_ 
+extract_transcript_coverage 'XM_027392226.1' $chx_p_fw $fig3d 'chx_p.wig'
+extract_transcript_coverage 'XM_027392226.1' $chx_f $fig3d 'chx_f.wig'
+
+# Fig3e
+mkdir $merged_dir/fig3e && fig3e=$_
+extract_transcript_coverage 'XM_027397764.2' $chx_p_fw $fig3e 'chx_p.wig'
+extract_transcript_coverage 'XM_027397764.2' $chx_f $fig3e 'chx_f.wig'
+
+# Fig3f
+mkdir $merged_dir/fig3f && fig3f=$_
+extract_transcript_coverage 'XR_004770832.1' $chx_p_fw $fig3f 'chx_p.wig'
+extract_transcript_coverage 'XR_004770832.1' $chx_f $fig3f 'chx_f.wig'
+
+
+
+
+# extract_transcript_coverage 'XM_027392226.1' $chx_transcriptome_p_fw $fig3d chx_p_transcriptome.wig
+# extract_transcript_coverage 'XM_027392226.1' $chx_transcriptome_f_fw $fig3d chx_f_transcriptome.wig
+# extract_transcript_coverage 'XM_027392226.1' $harr_transcriptome_p_fw $fig3d harr_p_transcriptome.wig
+# extract_transcript_coverage 'XM_027392226.1' $nd_transcriptome_p_fw $fig3d nd_p_transcriptome.wig
+
 conda deactivate
 
 # # Fig3d
