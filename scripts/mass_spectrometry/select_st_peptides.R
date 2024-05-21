@@ -72,30 +72,4 @@ for (data_type in data_types) {
     write.table(selected_peptides, 
                 file = paste0("proteomics/pepquery/protein_digestion/metamorpheus_st_peptides_",data_type,".txt"), 
                 sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
-
-    # split_vec <- strsplit(selected_proteins, split = "\\|")
-    
-    # selected_proteins <- unique(unlist(split_vec))
-    
-    # print("proteins with PSMs")
-    # print(length(selected_proteins))
-
-    # known_proteins <- readAAStringSet("proteomics/pepquery/known_proteome/known_proteins.fasta")
-
-    # headers <- names(known_proteins)
-    
-    # sequences <- as.character(known_proteins)
-
-    # keep_indices <- rep(FALSE, length(headers))
-
-    # # Check each header for partial matches
-    # for (partial_id in selected_proteins) {
-    #     if( partial_id != "iRT-Kit_WR_fusion"){
-    #     keep_indices <- keep_indices | str_detect(headers, partial_id)
-    #     }
-    # }
-
-    # subset_fasta <- known_proteins[keep_indices]
-
-    # writeXStringSet(subset_fasta, paste0("proteomics/pepquery/protein_digestion/semi_tryptic_", data_type, ".fasta"))
 }
