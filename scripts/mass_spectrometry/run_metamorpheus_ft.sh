@@ -67,6 +67,8 @@ for type in "${types[@]}"; do
             
             if [ $study == "tzani" ] && [ $type == "drug_product" ]; then
                 
+                mkdir -p $metamorpheus_dir/$type/$study/$sample/reducing 
+
                 raw_dir=proteomics/raw_files/$type/$study/$sample
                 quant_standard=data/protein_sequences/standards/hi3_standard.fasta    
                 mab=data/protein_sequences/mabs/"$sample".fasta
@@ -77,7 +79,7 @@ for type in "${types[@]}"; do
                 data/metamorpheus/Task3-SearchTaskconfig_reducing.toml \
                 -s $raw_dir \
                 -d $uniprot $crap $mab $quant_standard \
-                -o $metamorpheus_dir/$type/$study/$sample
+                -o $metamorpheus_dir/$type/$study/$sample/reducing
 
             elif [ "$study" == "pythoud" ] && [ "$type" == "drug_product" ]; then
 
@@ -104,7 +106,7 @@ for type in "${types[@]}"; do
 
             elif [ "$study" == "tzani" ] && [ "$type" == "lysate" ]; then
                 
-                raw_dir=proteomics/raw_files/$type/$study/$sample
+                raw_dir=proteomics/raw_files/$type/$study/$sample/reducing
 
                 metamorpheus \
                 -t data/metamorpheus/Task1-SearchTaskconfig_reducing.toml \
@@ -112,7 +114,7 @@ for type in "${types[@]}"; do
                 data/metamorpheus/Task3-SearchTaskconfig_reducing.toml \
                 -s $raw_dir \
                 -d $uniprot $crap \
-                -o $metamorpheus_dir/$type/$study/$sample
+                -o $metamorpheus_dir/$type/$study/$sample/reducing
             fi
         done
     done
