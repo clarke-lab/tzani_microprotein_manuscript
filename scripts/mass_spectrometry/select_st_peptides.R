@@ -3,11 +3,11 @@
 suppressMessages(library(tidyverse))
 suppressMessages(library(Biostrings))
 
-pep_q_val_thresh <- 0.1
+pep_q_val_thresh <- 0.2
 
 metamorpheus_st_path <- "proteomics/metamorpheus_semi/"
 
-data_types=c("drug_product", "lysate")
+data_types=c("drug_product")
 
 for (data_type in data_types) {
 
@@ -47,11 +47,11 @@ for (data_type in data_types) {
                     
                     psm_file <- paste0(metamorpheus_st_path, "/", data_type, "/", study,"/", sample,"/",
                     condition, "/Task3SearchTask/AllPeptides.psmtsv")
-                    
+                                        
                     peptides <- read_delim(psm_file, 
                                 delim = "\t", escape_double = FALSE, show_col=F,
                                 trim_ws = TRUE) %>%
-                                filter(`PEP_QValue` < pep_q_val_thresh) %>%
+                                filter(`PEP_QValue` < pep_q_val_thresh & `Peptide Description` == "Semi") %>%
                                 select(`Base Sequence`, `Protein Accession`, `PEP_QValue`)
 
                     print(paste0(dim(peptides)[1], " peptides found in the ", study, " ", sample, " data" ))
