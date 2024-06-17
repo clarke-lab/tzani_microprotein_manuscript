@@ -14,12 +14,12 @@ suppressMessages(invisible(lapply(package_list, require, character.only = TRUE))
 lysate_flashlfq_path = "proteomics/flashlfq/result/lysate/"
 metamorpheus_path = "proteomics/metamorpheus/lysate/tzani/"
 
-experiments <- c("tempshift","d4d7")
+experiments <- c("d4d7", "tempshift")
 
 for (experiment in experiments) {
 
     # determine which proteins were confidently detected by metamorpheus
-    metamorpheus_file <- paste0(metamorpheus_path, experiment, "/Task3SearchTask/AllQuantifiedProteinGroups.tsv")
+    metamorpheus_file <- paste0(metamorpheus_path, experiment, "/reducing/Task3SearchTask/AllQuantifiedProteinGroups.tsv")
   
     lysate_metamorpheus <- read_delim(metamorpheus_file, 
         delim = "\t", escape_double = FALSE, 
@@ -46,7 +46,56 @@ for (experiment in experiments) {
         TRUE ~ "remove")) %>%
         filter(decision == "keep") %>%
         dplyr::select(-decision)
+    
+    if (experiment == "tempshift") {
+      
+      lysate_quantified_proteins <- lysate_quantified_proteins %>%
+        rowwise() %>%
+        mutate(
+          non_zero_nts = sum(c_across(starts_with("Intensity_nts_24hr")) != 0),
+          non_zero_ts_24 = sum(c_across(starts_with("Intensity_ts_24hr")) != 0),
+          non_zero_ts_48 = sum(c_across(starts_with("Intensity_ts_48hr")) != 0),
+        ) %>%
+        # filter(str_detect(`Protein Groups`, 'XR_|XM_|NR_|XR_')) %>%
+        filter(!non_zero_nts < 3 & !non_zero_ts_24 < 3 & !non_zero_ts_48 < 3) %>%
+        dplyr::select(-c(non_zero_nts, non_zero_ts_24, non_zero_ts_48))
+        
+        print("quantified proteins in tempshift samples")
+        quant_count <- lysate_quantified_proteins %>%
+        mutate(class = case_when(
+        str_detect(`Protein Groups`, 'XR_|XM_|NR_|XR_') ~ "microprotein",
+        TRUE ~ "canonical"
+        )) %>%
+        group_by(class) %>%
+        count()
+        
+        print(quant_count)
+      
+    } else {
+      
+      lysate_quantified_proteins <- lysate_quantified_proteins %>%
+        rowwise() %>%
+        mutate(
+          non_zero_d4 = sum(c_across(starts_with("Intensity_d4")) != 0),
+          non_zero_d7 = sum(c_across(starts_with("Intensity_d7")) != 0)
+        ) %>%
+        # filter(str_detect(`Protein Groups`, 'XR_|XM_|NR_|XR_')) %>%
+        filter(!non_zero_d4 < 3 & !non_zero_d7 < 3) %>%
+        dplyr::select(-c(non_zero_d4, non_zero_d7))
 
+        # determine the number of canonical and microproteins quantitated
+        print("quantified proteins in d4d7 samples")
+        quant_count <- lysate_quantified_proteins %>%
+        mutate(class = case_when(
+        str_detect(`Protein Groups`, 'XR_|XM_|NR_|XR_') ~ "microprotein",
+        TRUE ~ "canonical"
+        )) %>%
+        group_by(class) %>%
+        count()
+
+        print(quant_count)
+    }
+    
     # make the abundance matix for proDA
     abundance_matrix <- as.matrix(lysate_quantified_proteins[,-1])
     rownames(abundance_matrix) <- lysate_quantified_proteins$`Protein Groups`

@@ -9,36 +9,13 @@
 
 mkdir $PWD/proteomics/pepquery && pepquery_dir=$_
 
-mkdir $pepquery_dir/peptide_digestion/ && digest_dir=$_
+pepquery_dir=$PWD/proteomics/pepquery
+
+mkdir $pepquery_dir/protein_digestion/ && digest_dir=$_
 
 # remove stop codon asterix from microprotein sequences 
 sed 's/*//g' orf_identification/orf_filtered/microproteins.fasta > \
 $digest_dir/microproteins.fasta
-
-# in silico digestion
-# semi-tryptic, 2 missed cleavages, between 7 & 45 AAs
-source activate oktoberfest
-python scripts/mass_spectrometry/peptide_digestion.py \
-$digest_dir/microproteins.fasta $digest_dir/ \
-semi 2 7 45
-conda deactivate
-
-# peptide to protein mapping file
-grep ',2,' $digest_dir/prosit_input.csv | cut -d, -f1  > \
-$digest_dir/microprotein_all_peptides.txt
-
-mv $digest_dir/prosit_input_with_proteins.csv \
-$digest_dir/microprotein_peptide_mapping.csv
-
-# we need to do two separate pepquery runs for each data type
-# one is for all peptides with on ox on M as var mod
-# the second is a reduced search of the peptides with the n-term of the protein
-# here, we add n-term acetylation and ox on M as var mods
-
-awk '/^>/ {if (seq) {print substr(seq, 1, 7)}; seq=""; next} {seq = seq $0} END {if (seq) print substr(seq, 1, 7)}' \
-$digest_dir/microproteins.fasta | awk '{print "^" substr($0, 1, 7)}' | \
-grep -f - $digest_dir/microprotein_all_peptides.txt > \
-$digest_dir/microprotein_nterm_peptides.txt
 
 # known proteins
 mkdir $pepquery_dir/known_proteome && ref_proteome=$_
@@ -54,11 +31,29 @@ cp data/protein_sequences/standards/* $ref_proteome
 
 find $ref_proteome/*.fasta -type f -exec cat {} \; > $ref_proteome/known_proteins.fasta
 
+cp $ref_proteome/known_proteins.fasta $digest_dir
+
+# select semi-tryptic peptides from metamorpheus FDR <= 0.1
+source activate microprotein_r_env
+Rscript scripts/mass_spectrometry/select_st_peptides.R
+conda deactivate
+
+source activate microprotein_process_env
+# digest both microprotein and known proteins 
+chainsaw -c Trypsin --numMissedCleavages 2 --minLength 7 --maxLength  45 --specificity semi $digest_dir/microproteins.fasta
+chainsaw -c Trypsin -n 2 -m 7 -M 45 -s fully $digest_dir/known_proteins.fasta
+conda deactivate
+
+source activate microprotein_r_env
+Rscript scripts/mass_spectrometry/peptide_digestion.R
+conda deactivate
+
 # Construct pepquery index 
-# 1. make MGF format files from mzML mass calibrated files
+# 1. make MGF format files from metamorpheus fully tryptic mzML mass calibrated files 
 # 2. make an index for the drug product and lysate ms data
 
-data_types=("lysate" "drug_product")
+data_types=("lysate")
+prep_types=("native" "reducing")
 
 source activate microprotein_process_env
 
@@ -67,23 +62,50 @@ pepquery_jar=$CONDA_PREFIX/share/pepquery-2.0.2-0/pepquery-2.0.2.jar
 
 for data_type in "${data_types[@]}"; do
 
-    mkdir -p $pepquery_dir/mgf_files/$data_type && mgf_dir=$_
+    for prep_type in "${prep_types[@]}"; do
 
-    # list mass calibrated mzML files
-    find proteomics/metamorpheus/$data_type -type f -name "*calib*.mzML" > \
-    $pepquery_dir/mgf_files/"$data_type"_calibrated_file_list.txt
-    
-    # convert mzML to MGF
-    msconvert --mgf \
-    -f $pepquery_dir/mgf_files/"$data_type"_calibrated_file_list.txt \
-    -o $mgf_dir
+    if [ $prep_type == "reducing" ]; then
 
-    # build the pepquery index
-    mkdir -p $pepquery_dir/index/$data_type && index_dir=$_
+        mkdir -p $pepquery_dir/mgf_files/$data_type/reducing && mgf_dir=$_
+                
+        # list mass calibrated mzML files
+        find proteomics/metamorpheus/$data_type/*/*/reducing -type f -name "*calib*.mzML" > \
+        $pepquery_dir/mgf_files/"$data_type"_"$prep_type"_calibrated_file_list.txt
+        
+        # convert mzML to MGF
+        msconvert --mgf \
+        -f $pepquery_dir/mgf_files/"$data_type"_"$prep_type"_calibrated_file_list.txt \
+        -o $mgf_dir
 
-    # make the index
-    java -Xmx275G -jar $pepquery_jar index \
-    -c 70 -f mgf -i $mgf_dir -o $index_dir
+        # build the pepquery index
+        mkdir -p $pepquery_dir/index/$data_type/reducing && index_dir=$_
+
+        # make the index
+        java -Xmx275G -jar $pepquery_jar index \
+        -c 70 -f mgf -i $mgf_dir -o $index_dir
+
+    elif [ "$prep_type" == "native" && "$data_type" == "drug_product" ]; then
+
+        mkdir -p $pepquery_dir/mgf_files/$data_type/native && mgf_dir=$_
+                
+        # list mass calibrated mzML files
+        find proteomics/metamorpheus/$data_type/*/*/$prep_type -type f -name "*calib*.mzML" > \
+        $pepquery_dir/mgf_files/"$data_type"_"$prep_type"_calibrated_file_list.txt
+        
+        # # convert mzML to MGF
+        msconvert --mgf \
+        -f $pepquery_dir/mgf_files/"$data_type"_"$prep_type"_calibrated_file_list.txt \
+        -o $mgf_dir
+
+        # build the pepquery index
+        mkdir -p $pepquery_dir/index/$data_type/native && index_dir=$_
+
+        # # make the index
+        java -Xmx275G -jar $pepquery_jar index \
+        -c 70 -f mgf -i $mgf_dir -o $index_dir
+
+    fi
+    done
 done
 
 conda deactivate
