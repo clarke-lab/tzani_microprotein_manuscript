@@ -18,29 +18,18 @@ Chinese hamster ovary (CHO) cells are used to produce almost 90% of therapeutic 
 </p>
 &nbsp;
 
-## Dependencies  
-
-| Software | R packages      ||
-| ------------- | --------------- | --------------- |
-| [cutadapt 1.18](https://cutadapt.readthedocs.io/en/stable/)     | [tidyverse](https://tidyr.tidyverse.org) | [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html) |
-| [STAR-2.7.8a](https://github.com/alexdobin/STAR) | [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) | [ggForce](https://ggforce.data-imaginist.com) |
-| [trimmomatic-0.36](http://www.usadellab.org/cms/?page=trimmomatic) | [patchwork](https://patchwork.data-imaginist.com) | [BioStrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html) |
-| [Plastid](https://plastid.readthedocs.io/en/latest/) | [writexl](https://github.com/ropensci/writexl) | [readxl](https://readxl.tidyverse.org) |
-| [ORF-RATER](https://github.com/alexfields/ORF-RATER) | [ggpp](https://cran.r-project.org/web/packages/ggpp/readme/README.html) | [ggpmisc](https://cran.r-project.org/web/packages/ggpmisc/index.html) |
-| [Docker](https://www.docker.com/) | [wiggleplotr](https://bioconductor.org/packages/release/bioc/html/wiggleplotr.html) | [WebGestaltR](https://cran.r-project.org/web/packages/WebGestaltR/index.html) |
-| [samtools](http://www.htslib.org/) | [GenomicFeatures](https://bioconductor.org/packages/release/bioc/html/GenomicFeatures.html) | [heatmaply](https://cran.r-project.org/web/packages/heatmaply/index.html) |
-| [Deeptools](https://deeptools.readthedocs.io/en/develop/) | [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html) | [ggvenn](https://github.com/yanlinlin82/ggvenn) |
-| [agat](https://github.com/NBISweden/AGAT) | [ggpubr](https://rpkgs.datanovia.com/ggpubr/) | [ggrepel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html) |
-| [Kent Utilities](https://hgdownload.soe.ucsc.edu/admin/exe/) | [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html) | [proDA](https://www.bioconductor.org/packages/release/bioc/html/proDA.html) |
-|  | [scales](https://scales.r-lib.org) | [pheatmap](https://cran.r-project.org/web/packages/pheatmap/index.html) |
-|  | [fuzzyjoin](https://cran.r-project.org/web/packages/fuzzyjoin/index.html) |
 
 
 # Preparation
 
-Make a directory for the analysis and enter it
+We utilise two mamba environments to manage the required software
+
 ```bash
-mkdir ribosome_footprint_profiling && cd ribosome_footprint_profiling
+mamba install 
+```
+
+```bash
+mamba install
 ```
 
 
