@@ -12,10 +12,10 @@ suppressMessages(invisible(lapply(package_list, require, character.only = TRUE))
 
 pepquery_path="proteomics/pepquery/"
 
-source("scripts/mass_spectrometry/process_pepquery_functions.R")
+source("scripts/mass_spectrometry/process_pepquery_functions_tp.R")
 
 # make a folder for id results
-protein_id_dir <- "proteomics/protein_identifications/"
+protein_id_dir <- "proteomics/protein_identifications_tp/"
 if (!dir.exists(protein_id_dir)) {
   dir.create(protein_id_dir, recursive = TRUE)
 }
@@ -27,15 +27,23 @@ pep_to_prot_map <- read_delim("proteomics/pepquery/protein_digestion/microprotei
     dplyr::rename(peptide=sequence)
 
 # first pass 
-drug_product_psms <- bind_rows( 
-import_pepquery(pepquery_path, "drug_product","all","reducing",pep_to_prot_map),
-import_pepquery(pepquery_path, "drug_product","nterm","reducing",pep_to_prot_map),
-import_pepquery(pepquery_path, "drug_product","all","native",pep_to_prot_map),
-import_pepquery(pepquery_path, "drug_product","nterm","native",pep_to_prot_map)
+drug_product_psms_tryptic <- bind_rows( 
+import_pepquery(pepquery_path, "drug_product","all","second_pass","reducing",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","nterm","second_pass","reducing",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","all","second_pass","native",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","nterm","second_pass","native",pep_to_prot_map)
 )
 
+drug_product_psms_semi_tryptic <- bind_rows(
+import_pepquery(pepquery_path, "drug_product","all","first_pass","reducing",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","nterm","first_pass","reducing",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","all","first_pass","native",pep_to_prot_map),
+import_pepquery(pepquery_path, "drug_product","nterm","first_pass","native",pep_to_prot_map)
+)
+
+ 
 # check if duplicate spectra are indentified as acetylated & non-acetylated
-dup_spectra_check <- drug_product_psms %>%
+dup_spectra_check <- drug_product_psms_semi_tryptic %>%
  group_by(spectrum_title) %>%
  summarise(duplicate_count = sum(duplicated(spectrum_title))) %>%
   filter(duplicate_count > 0)
@@ -47,9 +55,14 @@ dup_spectra_check <- drug_product_psms %>%
 
 print(paste0(dim(dup_spectra_check)[1], " spectra duplicated in the drug product search"))
 
+drug_product_psms_tryptic <- drug_product_psms_tryptic %>%
+distinct(spectrum_title, .keep_all=T) 
+
+drug_product_psms_semi_tryptic <- drug_product_psms_semi_tryptic %>%
+distinct(spectrum_title, .keep_all=T) 
 
 # identify high confident psms 
-confident_tzani_psms <- drug_product_psms %>%
+confident_tzani_psms <- drug_product_psms_tryptic %>%
   filter(study=="tzani") %>% 
   distinct(product, rep, protein,.keep_all = T)  %>% 
   group_by(product,protein ) %>%
@@ -61,7 +74,7 @@ paste0(dim(confident_tzani_psms)[1], " psms confidently identified in the tzani 
 paste0(length(unique(confident_tzani_psms$protein)), " microproteins found in the tzani drug product data")
 
 
-pythoud_psms <- drug_product_psms  %>% 
+pythoud_psms <- drug_product_psms_tryptic  %>% 
   filter(study=="pythoud") %>% 
  distinct(product, sample_prep, rep,protein, .keep_all = T)  %>% 
   group_by(product, protein, sample_prep) %>%
@@ -87,11 +100,18 @@ paste0(length(drug_product_microproteins), " microprotein found in the drug prod
 # select all psms found for the drug products. The microproteins were found separately,  
 # but if we find evidence of the existence of the microprotein in the other study via
 # a PSM in one replicate with consider this significant
-drug_product_psms<- drug_product_psms %>%
+drug_product_psms<- drug_product_psms_tryptic %>%
   filter(protein %in% drug_product_microproteins)
 
+st_select <- drug_product_psms_semi_tryptic %>%
+dplyr::select(spectrum_title,peptide,protein) %>%
+dplyr::rename(protein_st=protein,
+peptide_st=peptide)
 
-saveRDS(drug_product_psms, file = paste0(protein_id_dir,"microproteins_drug_product.rds"))
+drug_product_psms <- drug_product_psms %>%
+left_join(st_select, by="spectrum_title") 
+
+saveRDS(drug_product_psms, file = paste0(protein_id_dir,"microproteins_drug_product_sp.rds"))
 
 # import the canonical proteins and psms
 studies <- c("tzani", "pythoud")
@@ -132,17 +152,17 @@ for (study in studies) {
 }
 
 # output file containing protein identifications
-saveRDS(canonical_proteins_drug_product, file = paste0(protein_id_dir,"canonical_proteins_drug_product.rds"))
+saveRDS(canonical_proteins_drug_product, file = paste0(protein_id_dir,"canonical_proteins_drug_product_tp.rds"))
   
 # preparate for flashlfq
 
-flashlfq_dir <- "proteomics/flashlfq/psm/drug_product"
+flashlfq_dir <- "proteomics/flashlfq/psm_tp/drug_product"
 if (!dir.exists(flashlfq_dir)) {
   dir.create(flashlfq_dir, recursive = TRUE)
 }
 
 # import the mgf files to enable extraction of retention time
-mgf_files <- list.files("proteomics/pepquery/mgf_files/drug_product", pattern = "\\.mgf$", 
+mgf_files <- list.files("proteomics/pepquery/mgf_files/drug_product/reducing", pattern = "\\.mgf$", 
 recursive = TRUE, full.names = TRUE)
 drug_product_sps <- Spectra(mgf_files, source = MsBackendMgf())
 
@@ -196,8 +216,8 @@ for (set_name in dp_psms_mp_flfq_names) {
 # import peptide protein mapping
 
 # import drug product pepquery psms
-lysate_psms <- bind_rows(import_pepquery(pepquery_path, "lysate", "all", "reducing",pep_to_prot_map), 
-import_pepquery(pepquery_path, "lysate", "nterm","reducing", pep_to_prot_map))
+lysate_psms <- bind_rows(import_pepquery(pepquery_path, "lysate", "all", pep_to_prot_map), 
+import_pepquery(pepquery_path, "lysate", "nterm", pep_to_prot_map))
 
 # check if duplicate spectra are indentified as acetylated & non-acetylated
 dup_spectra_check <- lysate_psms %>%
@@ -244,15 +264,15 @@ lysate_psms <- lysate_psms %>%
 saveRDS(lysate_psms, file = paste0(protein_id_dir,"microproteins_lysate.rds"))
 
 # import the lysate protein and psms
-tempshift_canonical <- import_canonical("lysate","tzani", "tempshift", "reducing")
-d4d7_canonical <- import_canonical("lysate","tzani", "d4d7", "reducing")
+tempshift_canonical <- import_canonical("lysate","tzani", "tempshift")
+d4d7_canonical <- import_canonical("lysate","tzani", "d4d7")
 
 canonical_proteins_lysate <- bind_rows(tempshift_canonical$protein, d4d7_canonical$protein)
 canonical_psms_lysate <- bind_rows(tempshift_canonical$psm, d4d7_canonical$psm)
 
 # output file containing protein identifications
 saveRDS(canonical_proteins_lysate, file = paste0(protein_id_dir,"canonical_proteins_lysate.rds"))
-imported_canonical <- import_canonical("lysate","tzani", "tempshift", "reducing")
+imported_canonical <- import_canonical("lysate","tzani", "tempshift")
 
 # preparate for flashlfq
 

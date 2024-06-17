@@ -14,8 +14,6 @@ types=("drug_product" "lysate")
 
 for type in "${types[@]}"; do 
 
-    
-
     if [ $type == "drug_product" ]; then
             
             studies=("tzani")
@@ -48,7 +46,7 @@ for type in "${types[@]}"; do
 
         FlashLFQ \
         --idt $flashlfq_dir/psm/$type/"$study"_"$sample".psms.filtered.tsv \
-        --rep $metamorpheus_dir/$type/$study/$sample/Task2CalibrationTask \
+        --rep $metamorpheus_dir/$type/$study/$sample/reducing/Task2CalibrationTask \
         --ppm 10 \
         --thr 40 \
         --mbr true \

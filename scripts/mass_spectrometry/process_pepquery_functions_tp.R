@@ -1,11 +1,11 @@
 # import the pepquery microprotein search results
-import_pepquery <- function(pepquery_path, sample_type, region, sample_prep,
+import_pepquery <- function(pepquery_path, sample_type, region, pass, sample_prep,
                             pep_to_prot_map) {
   
   if (region == "nterm"){
   
     psms <- read_delim(paste0(pepquery_path, "results/", sample_type, "/", 
-                              region, "/",  sample_prep, "/psm_rank.txt"), 
+                              region, "/", pass, "/", sample_prep, "/psm_rank.txt"), 
                        delim = "\t", escape_double = FALSE, 
                        trim_ws = TRUE, show_col=F) %>%
       filter(str_detect(modification, "Acetylation")) %>% #only acetylated nterm
@@ -15,7 +15,7 @@ import_pepquery <- function(pepquery_path, sample_type, region, sample_prep,
   } else {
     
     psms <- read_delim(paste0(pepquery_path, "results/", sample_type, "/", 
-                              region, "/", sample_prep, "/psm_rank.txt"),
+                              region, "/", pass, "/", sample_prep, "/psm_rank.txt"),
                        delim = "\t", escape_double = FALSE, 
                        trim_ws = TRUE, show_col=F) %>%
       filter(confident == "Yes") %>%

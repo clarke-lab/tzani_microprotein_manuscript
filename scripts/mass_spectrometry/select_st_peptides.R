@@ -3,11 +3,11 @@
 suppressMessages(library(tidyverse))
 suppressMessages(library(Biostrings))
 
-pep_q_val_thresh <- 0.2
+pep_q_val_thresh <- 0.10
 
 metamorpheus_st_path <- "proteomics/metamorpheus_semi/"
 
-data_types=c("drug_product")
+data_types=c("drug_product","lysate" )
 
 for (data_type in data_types) {
 
@@ -32,7 +32,7 @@ for (data_type in data_types) {
             
             conditions <- "reducing"
 
-            samples <- c("d4d7", "tempshift")
+            samples <- c("d4d7","tempshift")
 
         }  else if (study == "pythoud" & data_type == "drug_product") {
             

@@ -1,11 +1,11 @@
 # import the pepquery microprotein search results
-import_pepquery <- function(pepquery_path, sample_type, region, sample_prep,
+import_pepquery <- function(pepquery_path, sample_type, region, 
                             pep_to_prot_map) {
   
   if (region == "nterm"){
   
     psms <- read_delim(paste0(pepquery_path, "results/", sample_type, "/", 
-                              region, "/",  sample_prep, "/psm_rank.txt"), 
+                              region, "/psm_rank.txt"), 
                        delim = "\t", escape_double = FALSE, 
                        trim_ws = TRUE, show_col=F) %>%
       filter(str_detect(modification, "Acetylation")) %>% #only acetylated nterm
@@ -15,7 +15,7 @@ import_pepquery <- function(pepquery_path, sample_type, region, sample_prep,
   } else {
     
     psms <- read_delim(paste0(pepquery_path, "results/", sample_type, "/", 
-                              region, "/", sample_prep, "/psm_rank.txt"),
+                              region, "/psm_rank.txt"), 
                        delim = "\t", escape_double = FALSE, 
                        trim_ws = TRUE, show_col=F) %>%
       filter(confident == "Yes") %>%
@@ -108,9 +108,9 @@ import_pepquery <- function(pepquery_path, sample_type, region, sample_prep,
 }
 
 # import the metamorpheus canonical protein search results
-import_canonical <- function(type, study, sample, prep) {
+import_canonical <- function(type, study, sample) {
   
-  proteins <- read_delim(paste0("proteomics/metamorpheus/", type, "/",study,"/",sample, "/", prep,
+  proteins <- read_delim(paste0("proteomics/metamorpheus/", type, "/",study,"/",sample,
                                 "/Task3SearchTask/AllQuantifiedProteinGroups.tsv"), 
                          delim = "\t", escape_double = FALSE, show_col=F,
                          col_select = c(`Protein Accession`, `Gene`, 
@@ -140,7 +140,7 @@ import_canonical <- function(type, study, sample, prep) {
                   `Protein QValue`) 
     }
    
-  allpsms <- read_delim(paste0("proteomics/metamorpheus/", type, "/", study,"/", sample, "/", prep,
+  allpsms <- read_delim(paste0("proteomics/metamorpheus/", type, "/", study,"/", sample,
                                "/Task3SearchTask/AllPSMs.psmtsv"), 
                         delim = "\t", escape_double = FALSE, 
                         trim_ws = TRUE, show_col_types = FALSE) %>%
@@ -215,7 +215,7 @@ add_peptide_mods <- function(mod_string, peptide) {
 add_retention_time <- function(sps, spectrum, type, filename, mz) {
   
   mgf_parent_dir= "/mnt/HDD2/colin_work/microprotein_analysis/proteomics/pepquery/mgf_files/"
-  mgf_file <- paste0(mgf_parent_dir, type, "/reducing/", filename)
+  mgf_file <- paste0(mgf_parent_dir, type, "/", filename)
   
   sps_sub <- filterDataOrigin(sps,dataOrigin=mgf_file)
   

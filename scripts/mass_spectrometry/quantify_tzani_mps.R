@@ -18,7 +18,7 @@ metamorpheus_path = "proteomics/metamorpheus/drug_product/tzani/"
 drug_product_psms <- readRDS("proteomics/protein_identifications/microproteins_drug_product.rds")
 
 # determine the molecular weight of each microprotein
-fastaFile <- readAAStringSet("proteomics/pepquery/peptide_digestion/microproteins.fasta")
+fastaFile <- readAAStringSet("proteomics/pepquery/protein_digestion/microproteins.fasta")
 
 protein = names(fastaFile)
 protein_sequence = paste(fastaFile)
@@ -58,7 +58,7 @@ for (product in products) {
     mutate(`Average Abundance` = rowMeans(across(contains("Intensity_tzani_")), na.rm =T))
 
   # determine which proteins were confidently detected by metamorpheus
-  metamorpheus_file <- paste0(metamorpheus_path,product, "/Task3SearchTask/AllQuantifiedProteinGroups.tsv")
+  metamorpheus_file <- paste0(metamorpheus_path,product, "/reducing/Task3SearchTask/AllQuantifiedProteinGroups.tsv")
   
   product_metamorpheus <- read_delim(metamorpheus_file, 
     delim = "\t", escape_double = FALSE, 
