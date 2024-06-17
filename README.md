@@ -36,21 +36,23 @@ Chinese hamster ovary (CHO) cells are used to produce almost 90% of therapeutic 
 |  | [fuzzyjoin](https://cran.r-project.org/web/packages/fuzzyjoin/index.html) |
 
 
-# Section 1: Analysis
+# Preparation
 
 Make a directory for the analysis and enter it
 ```bash
 mkdir ribosome_footprint_profiling && cd ribosome_footprint_profiling
 ```
 
-## 2. Dowload the raw RiboSeq and RNASeq data
+
+
+## 2. Process the NGS data
 
 To be completed when data is uploaded to SRA and ENA
 
 ```bash
 ./scripts/get_raw_data.sh
 ```
-## 3. Reference genome
+## 3. Novel ORF identification
 
 Download the PICR-H reference genome from NCBI and create a STAR index for mapping
 
@@ -62,8 +64,7 @@ cat data/reference_genome_files.txt | parallel -j 4 wget -P reference_genome {}
 gunzip reference_genome/*.gz
 ```
 
-## 4. Create reference index
-A STAR index is created to map the Ribo-seq and RNA-seq data
+## 4. Translational Efficency Analysis
 
 ```bash
 
