@@ -19,4 +19,3 @@ mkdir differential_translation
 source activate microprotein_r_env
 Rscript ./scripts/run_deseq2.R
 conda deactivate
-

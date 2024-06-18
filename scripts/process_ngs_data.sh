@@ -13,11 +13,10 @@
 ./scripts/ngs/get_ngs_data.sh
 
 # 2. Preprocess the data
-./scripts/ngs/get_ngs_data.sh
+./scripts/ngs/preprocess_reads.sh
 
 # 3. Determine the P-site
 ./scripts/ngs/calc_psite.sh
 
 # 4. Make coverage plots shown in the manuscript
 ./scripts/ngs/make_coverage_tracks.sh
-

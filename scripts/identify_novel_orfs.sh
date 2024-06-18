@@ -10,6 +10,6 @@
 ./scripts/orf_discovery/find_orfs.sh
 
 # 2. Preprocess the data
+source activate microprotein_r_env
 Rscript ./scripts/orf_discovery/filter_orfrater.R
-
-
+conda deactivate
