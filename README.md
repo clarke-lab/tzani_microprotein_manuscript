@@ -32,179 +32,39 @@ mamba install
 mamba install
 ```
 
-
-
-## 2. Process the NGS data
-
-To be completed when data is uploaded to SRA and ENA
-
-```bash
-./scripts/get_raw_data.sh
-```
-## 3. Novel ORF identification
-
-Download the PICR-H reference genome from NCBI and create a STAR index for mapping
-
-```bash
-# download
-cat data/reference_genome_files.txt | parallel -j 4 wget -P reference_genome {}
-
-# extract
-gunzip reference_genome/*.gz
-```
-
-## 4. Translational Efficency Analysis
-
-```bash
-
-```
-
-## 5. RPF and read mapping
-This script preprocesses the raw sequencing data. For all data types the adapters are removed as well as low quality bases. 
-For Ribo-seq data contaminating RNA species (rRNA, tRNA and snoRNA) are removed following mapping to individual indexes, 
-remaining reads are filtered based on length with only those within the expected RPF range (28-31nt) retained. Finally the reads from all replicate 
-```bash
-./scripts/preprocess_reads.sh
-
-# count the reads removed by filtering as well as the final RPFs
-mkdir results
-./scripts/fastq_read_count.sh
-```
-
-## 6. Finding the RPF Offset 
-Calculation of the P-site offset and analysis of triplet periodicty for RPFs for the merged and individual samples.  
-```bash
-./scripts/identify_RPF_psite.sh
-```
-
-## 7. ORF identification
-
-### Get the docker image
-We have built a docker image with ORF-RATER and required packages to ensure future compatability
-
 Download the ORF-RATER docker image 
 ```bash
 docker pull clarkelab/orfrater
 ```
 
-### Identify CHO cell ORFs 
 
-The merged BAM files for Harringtone, cycloheximide and no-drug Ribo-seq as well as the Chinese hamster 
-refercen annotation are inputted to ORF-RATER
+
+## 2. Process the NGS data
+
 
 ```bash
-./scripts/identify_ORFs.sh
+./scripts/process_ngs_data.sh
 ```
-### Filter ORFs
-
-Filter the ORF-RATER output to remove: 
-  * ORFs < 5aa & ORFRATER score < 0.05
-  * Truncations and Interal ORFs
-  * When other ORFs overlap and have the same stop codon retain the longest
-
-A list of ORFs in non-coding RNAs is created for downstream differential expression analysis
-
-```
-# create a directory to store ids for amino acid analysis and plastid quantitation
-mkdir orf_lists 
-
-# mkdir to store results
-mkdir results/section_2.2
-
-# filter the ORF-RATER output
-Rscript ./scripts/filter_ORFs.R
-```
-
-## 8. Amino acid sequences
-
-### sORF amino acid usage
-```
-./scripts/get_ORF_amino_acid_sequences.sh
-```
-
-### Mass spectrometry fasta
-Here we extract the amino acid sequences for short ORFs and combine with the Uniprot Chinese hamster proteins. A database can be created for Mass spec based HCP analysis
-```
-mkdir proteomics_db
-./scripts/create_ms_fasta.sh
-```
-
-## 9. Plastid reference 
-Here a plastid reference is created to enable the determination of the RPKM of transcripts and gene-level counting. A mask is created to elminate the first 5 and last 15 codons of ORFs >100aa, for ORFs <= 100aa the first and last codons are exlcuded from the counting process
-```
-mkdir plastid_reference
-./scripts/make_plastid_reference.sh
-```
-
-## 9. Transcript level quantiation
-The RPKM is calculated for each annotated transcript
-```bash
-mkdir -p quantitation/transcript_cds_rpkm
-./scripts/calculate_rpkm.sh
-```
-
-## 10. Gene level quantitation
-
-To enable the identification of differential translation between the NTS and TS conditions the mapped Ribo-seq and RNA-seq CDS counts are determined. For the Riboeq
+## 3. Novel ORF identification
 
 ```bash
-mkdir quantitation/gene_cds_counts
-./scripts/calculate_gene_cds_counts.sh
+./scripts/identify_novel_orfs.sh
 ```
 
-## 11. Differential Translation Analysis
-First we count the RPFs and RNA-seq reads mapping to CDS regions using Plastid
+## 4. Translational Efficency Analysis
+
 ```bash
-./scripts/calculate_gene_cds_count.sh
+./scripts/run_differential_translation.sh
 ```
 
-Then DESeq2 is using to calculate differential expression from the Ribo-seq and RNA-seq reads separately before differential translation is carried out.
-```
-# the mouse annotation is used to replace missing gene CGR gene symbols
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/635/GCF_000001635.27_GRCm39/GCF_000001635.27_GRCm39_feature_table.txt.gz \
--P reference_genome
-
-gunzip reference_genome/GCF_000001635.27_GRCm39_feature_table.txt.gz
-
-
-
+## 5. Mass Spectrometry Data analysis
+ 
+```bash
+./scripts/run_proteomics.sh
 ```
 
-# Section 2: Reproduction of Tables and Figures
-
-## Make alignment tracks
-Here we make the required alignment tracks for figures from the genome and transcriptome BAMs using individual replicates and the merged data
-```
-./scripts/make_coverage_tracks.sh
-```
-
-
-## Quality control of RNA-seq and Ribo-seq data
-Assessment of prerocessing and read length, phasing, metagene profiles for the Ribo-seq data
-```
-results/r_scripts/section_2_1.Rmd
-```
-
-## ORF identification 
-Outputs of the ORF-RATER algorithm for the Chinese hamster genome
-```
-results/r_scripts/section_2_2.Rmd
-```
-
-## Upstream ORF analysis
-Analysis of the global effect of uORFs at the transcript level
-```
-results/r_scripts/section_2_3.Rmd
-```
-
-## Differential Expression/Translation analysis for annotated protein coding genes
-DESeq2 analysis of the NCBI annotated protein coding genes annotated in the Chinese hamster genome
-```
-results/r_scripts/section_2_4.Rmd
-```
-
-## Differential Expression/Translation analysis for ORFs in non-coding RNA
-DESeq2 analysis of ORFs identified in the Chinese hamster ncRNA
-```
-results/r_scripts/section_2_5.Rmd
+## 5. Preparation of Manuscript
+ 
+```bash
+./scripts/prepare_manuscript.sh
 ```
