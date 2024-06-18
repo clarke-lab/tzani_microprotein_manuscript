@@ -30,7 +30,7 @@ Chinese hamster ovary (CHO) cells are used to produce almost 90% of therapeutic 
 mamba env create -f microprotein_process_env.yaml --name microprotein_process_env
 ```
 
-### 2. R and required packages
+### 2. R and R packages
 ```bash
 mamba env create -f microprotein_r_env.yaml --name microprotein_r_env
 ```
@@ -47,32 +47,29 @@ https://github.com/smith-chem-wisc/MetaMorpheus/wiki/Getting-Started#test-conda-
 docker pull clarkelab/orfrater
 ```
 
-## 2. Process the NGS data
-
-
+## Analysis
+## 1. Process the NGS data
 ```bash
 ./scripts/process_ngs_data.sh
 ```
-## 3. Novel ORF identification
 
+## 2. Novel ORF identification
 ```bash
 ./scripts/identify_novel_orfs.sh
 ```
 
-## 4. Translational Efficency Analysis
+## 3. Translational Efficency Analysis
 
 ```bash
 ./scripts/run_differential_translation.sh
 ```
 
-## 5. Mass Spectrometry Data analysis
- 
+## 4. Mass Spectrometry Data analysis
 ```bash
 ./scripts/run_proteomics.sh
 ```
 
-## 6. Preparation of Manuscript
- 
+## Manuscript
 ```bash
 ./scripts/prepare_manuscript.sh
 ```
