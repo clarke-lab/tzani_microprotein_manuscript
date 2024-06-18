@@ -33,11 +33,10 @@ mamba install
 ```
 
 Download the ORF-RATER docker image 
+
 ```bash
 docker pull clarkelab/orfrater
 ```
-
-
 
 ## 2. Process the NGS data
 
@@ -63,7 +62,7 @@ docker pull clarkelab/orfrater
 ./scripts/run_proteomics.sh
 ```
 
-## 5. Preparation of Manuscript
+## 6. Preparation of Manuscript
  
 ```bash
 ./scripts/prepare_manuscript.sh
