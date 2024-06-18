@@ -1,5 +1,5 @@
  
-# CHO cell Ribo-seq analysis  
+# CHO Cell Microproteins 
 
 [![DOI](https://zenodo.org/badge/449655379.svg)](https://zenodo.org/badge/latestdoi/449655379)
 
@@ -22,18 +22,27 @@ Chinese hamster ovary (CHO) cells are used to produce almost 90% of therapeutic 
 
 # Preparation
 
-We utilise two mamba environments to manage the required software
 
+## Mamba Environment
+
+### 1. Linux software
 ```bash
-mamba install 
+mamba env create -f microprotein_process_env.yaml --name microprotein_process_env
 ```
 
+### 2. R and required packages
 ```bash
-mamba install
+mamba env create -f microprotein_r_env.yaml --name microprotein_r_env
 ```
 
-Download the ORF-RATER docker image 
+## Conda Environment
+### 1. MetaMorpheus 
+```
+https://github.com/smith-chem-wisc/MetaMorpheus/wiki/Getting-Started#test-conda-installation-linux-macos-windows
+```
 
+## Docker
+### 1. ORF-RATER
 ```bash
 docker pull clarkelab/orfrater
 ```
