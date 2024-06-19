@@ -59,7 +59,6 @@ docker pull clarkelab/orfrater
 ```
 
 ## 3. Translational Efficency Analysis
-
 ```bash
 ./scripts/run_differential_translation.sh
 ```
