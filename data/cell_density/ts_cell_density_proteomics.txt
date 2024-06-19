@@ -1,0 +1,10 @@
+Replicate	condition	cell_density
+1	NTS	2.75E+06
+2	NTS	3.54E+06
+3	NTS	3.45E+06
+1	TS 24hrs	2.06E+06
+2	TS 24hrs	2.25E+06
+3	TS 24hrs	2.19E+06
+1	TS 48hrs	2.18E+06
+2	TS 48hrs	2.41E+06
+3	TS 48hrs	2.35E+06
