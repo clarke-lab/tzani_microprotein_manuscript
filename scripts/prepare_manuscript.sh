@@ -5,7 +5,6 @@
 
 source activate microprotein_r_env
 
-
 # Section 2.1
 Rscript ./scripts/manuscript_prep/section2.1.R
 
