@@ -1,11 +1,11 @@
  
-# CHO Cell Microproteins 
+# Tzani *et al*. Microprotein Manuscript 
 
 [![DOI](https://zenodo.org/badge/449655379.svg)](https://zenodo.org/badge/latestdoi/449655379)
 
 The code contained in this repositority enable the reproduction of the results of:
 
-Castro-Rivadeneyra *et. al* 2023. **Annotation of the non-canonical translatome reveals that CHO cell microproteins are a new class of mAb drug product impurity**
+Castro-Rivadeneyra *et. al* 2024. **Annotation of the non-canonical translatome reveals that CHO cell microproteins are a new class of mAb drug product impurity**
 
 The publication is freely availiable here: xxxxxxx&nbsp;
 
@@ -47,7 +47,7 @@ https://github.com/smith-chem-wisc/MetaMorpheus/wiki/Getting-Started#test-conda-
 docker pull clarkelab/orfrater
 ```
 
-## Analysis
+## Data Analysis
 ## 1. Process the NGS data
 ```bash
 ./scripts/process_ngs_data.sh
@@ -68,7 +68,7 @@ docker pull clarkelab/orfrater
 ./scripts/run_proteomics.sh
 ```
 
-## Manuscript
+## Reproduce Manuscript Figures and tables
 ```bash
 ./scripts/prepare_manuscript.sh
 ```
