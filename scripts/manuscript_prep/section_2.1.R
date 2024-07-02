@@ -1,30 +1,23 @@
-#!/usr/bin/env Rscript --vanilla
+## ----setup-----------------------------------------------------------------------------------------
+package_list <- c("tidyverse", "writexl", "ggpubr", "viridis", "patchwork")
 
-# Author: Colin Clarke
-# Date:   2024-02-06
-# Purpose: replicate results for section 2.1 of the manuscript
-
-## ----setup----------------------------------------------------------------------------------------------------------------------------------------
-package_list <- c("tidyverse", "writexl", "ggpubr", "viridis")
-
-suppressMessages(lapply(package_list, require, character.only = TRUE))
+lapply(package_list, require, character.only = TRUE)
 
 options(dplyr.summarise.inform = FALSE)
 
 # source("scripts/manuscript/utility_functions.R")
 
 
-## ----make_results_dir-----------------------------------------------------------------------------------------------------------------------------
+## ----make_results_dir------------------------------------------------------------------------------
 results_dir <- "manuscript/section_2.1/"
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)
 }
 
 
-## ---- cell_density_info---------------------------------------------------------------------------------------------------------------------------
-
+## ---- cell_density_info----------------------------------------------------------------------------
 # import the cell density data for both the CHX and HARR riboseq data
-cell_density_data <- read_delim("data/cell_density/cell_density_data.txt", "\t",
+cell_density_data <- read_delim("data/cell_density/ts_cell_density_ngs.txt", "\t",
   escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE)
 
 # calculate the difference in cell density at 72hrs post seeding for the TS and NTS cell lines
@@ -40,12 +33,10 @@ initiation_ts_delta <- cd_summary %>%
   filter(Experiment == "Initiation") %>%
   summarise(`CD diff` = 100 - round((mean_density[condition == "TS"] / mean_density[condition == "NTS"]) * 100))
 
-paste0("Approx. ", initiation_ts_delta$`CD diff`, "% cell density reduction in CD in TS samples")
-
 paste0("___________________________________________________________________________________ ")
 paste0("                         Elongation experiment.                                    ")
 paste0("___________________________________________________________________________________")
-
+paste0("Approx. ", initiation_ts_delta$`CD diff`, "% cell density reduction in CD in TS samples")
 
 elongation_ts_delta <- cd_summary %>%
   filter(Experiment == "Elongation") %>%
@@ -53,12 +44,13 @@ elongation_ts_delta <- cd_summary %>%
 
 paste0("Approx. ", elongation_ts_delta$`CD diff`, "% cell density reduction in CD in TS samples")
 
-## ---- supp_data_1---------------------------------------------------------------------------------------------------------------------------------
+
+## ---- supp_data_1----------------------------------------------------------------------------------
 supp_data_1 <- cell_density_data %>%
   pivot_wider(names_from= c(condition),values_from=cell_density) %>%
   rename(`NTS cell density (cells/ml)`=NTS, `TS cell density (cells/ml)`=TS)
 
-fn <- paste(results_dir, "Supplementary Data 1.xlsx", sep = "")
+fn <- paste(results_dir, "Supplementary Data 1a.xlsx", sep = "")
 
 suppressMessages(if (file.exists(fn)) {
   file.remove(fn)})
@@ -67,22 +59,23 @@ write_xlsx(list(`A`=supp_data_1),
 path = fn, format_headers = TRUE)
 
 
-## ----supp_figure_1--------------------------------------------------------------------------------------------------------------------------------
+## ----supp_figure_1---------------------------------------------------------------------------------
 ggboxplot(cell_density_data, x = "condition", y = "cell_density", 
                                color = "black", add = "jitter", fill = "condition") +
   facet_wrap(~Experiment, ncol = 2) +
   theme_bw() +
-  stat_compare_means(method = "t.test", label.y = 2250000, label.x = 1.6) +
+  stat_compare_means(method = "t.test", label.y = 2100000, label.x = 1.65) +
   labs(x = "", y = "Cell Density (cells/ml)", fill = "") +
   theme(legend.position = "none") +
   scale_y_continuous(labels = function(x) format(x, scientific = TRUE)) +
-  scale_fill_manual(values = c("#D55E00", "#56B4E9"))
+  scale_fill_manual(values = c("#D55E00", "#56B4E9")) +
+  theme(strip.background = element_rect(fill = "white"))
 
 ggsave(filename = paste(results_dir, "Supplementary Figure 1.png", sep = ""), 
-       width = 6, height = 4, device = "png", dpi = 700)
+       width = 6, height = 3, device = "png", dpi = 2000)
 
 
-## ----import_read_counts---------------------------------------------------------------------------------------------------------------------------
+## ----import_read_counts----------------------------------------------------------------------------
 combined_counts <- read_delim("sequencing/stats/read_counts/combined_counts.txt", 
     delim = "\t", escape_double = FALSE, show_col_types = FALSE,trim_ws = TRUE) %>%
   filter(file !="file") %>%
@@ -121,7 +114,7 @@ left_join(sample_ids,by = "sample") %>%
   select(-X1, -X2)
 
 
-## ----transform_read_counts------------------------------------------------------------------------------------------------------------------------
+## ----transform_read_counts-------------------------------------------------------------------------
 riboseq_counts <- combined_counts %>%
   filter(seq_type != "RNAseq") %>%
   pivot_wider(id_cols = c(sample, seq_type), 
@@ -141,7 +134,7 @@ riboseq_counts <- combined_counts %>%
   mutate(sample = toupper(sample))
 
 
-## ----riboseq_read_info----------------------------------------------------------------------------------------------------------------------------
+## ----riboseq_read_info-----------------------------------------------------------------------------
 total_read_counts<- riboseq_counts %>%
   rowwise() %>%
   mutate(raw=sum(c_across(Cutadapt:Retained))) %>% 
@@ -177,29 +170,33 @@ retained_total <- riboseq_counts %>%
 paste0("___________________________________________________________________________________")
 paste0("                    Ribo-seq reads reatained post-processing                       ")
 paste0("___________________________________________________________________________________")
-paste0("Total of ", retained_total[1,2], " million preprocessed ", retained_total[1,1], " Ribo-seq reads for ORF-RATER")
-paste0("Total of ", retained_total[2,2], " million preprocessed ", retained_total[2,1], " Ribo-seq reads for ORF-RATER")
-paste0("Total of ", retained_total[3,2], " million preprocessed ", retained_total[3,1], " Ribo-seq reads for ORF-RATER")
+paste0("Total of ", retained_total[1,2], " million preprocessed ", retained_total[1,1], " RPFs for ORF-RATER")
+paste0("Total of ", retained_total[2,2], " million preprocessed ", retained_total[2,1], " RPFs for ORF-RATER")
+paste0("Total of ", retained_total[3,2], " million preprocessed ", retained_total[3,1], " RPFs for ORF-RATER")
 
-## ----supp_figure_2--------------------------------------------------------------------------------------------------------------------------------
+
+## ----supp_figure_2---------------------------------------------------------------------------------
 stack_order <- c(
   "Cutadapt", "rRNA", "snoRNA", "tRNA", "<28nt or >32nt", "Retained"
 )
 
 riboseq_counts %>%
-  pivot_longer(cols = c("Cutadapt", "rRNA", "snoRNA", "tRNA", "<28nt or >32nt", "Retained"), values_to = "count", names_to = "stage") %>%
+  pivot_longer(cols = c("Cutadapt", "rRNA", "snoRNA", "tRNA", "<28nt or >32nt", "Retained"), 
+               values_to = "count", names_to = "stage") %>%
   ggplot(aes(x = sample, y = count, fill = factor(stage, levels = stack_order))) +
   geom_bar(stat = "identity", position = "fill") +
   theme_bw() +
   # scale_fill_brewer(palette = "Paired") +
   labs(x = "", y = "Proportion of reads", fill = "") +
   facet_wrap(~seq_type, nrow = 3) +
-  scale_fill_viridis(discrete = T)
+  scale_fill_viridis(discrete = T, option="H", direction = 1) +
+  theme(strip.background = element_rect(fill = "white"))
 
-ggsave(filename = paste(results_dir, "Supplementary Figure 2.png", sep = ""), width = 7, height = 8, device = "png", dpi = 700)
+ggsave(filename = paste(results_dir, "Supplementary Figure 2.png", sep = ""), 
+       width = 7, height = 8, device = "png", dpi = 2000)
 
 
-## ----rnaseq_seq_info------------------------------------------------------------------------------------------------------------------------------
+## ----rnaseq_seq_info-------------------------------------------------------------------------------
 rnaseq_counts <- combined_counts %>%
   filter(seq_type == "RNAseq") %>%
   mutate(sample = toupper(sample)) %>%
@@ -213,7 +210,7 @@ paste0("________________________________________________________________________
 paste0("Average of ", floor(mean(rnaseq_counts$passed)/1e6), " million reads passed preprocesing for each RNA-seq sample.")
 
 
-## ----supp_data_2----------------------------------------------------------------------------------------------------------------------------------
+## ----supp_data_2-----------------------------------------------------------------------------------
 fn <- paste(results_dir, "Supplementary Data 2.xlsx", sep = "")
 
 suppressMessages(if (file.exists(fn)) {
@@ -240,7 +237,7 @@ write_xlsx(list(a = riboseq_output_counts %>% filter(seq_type=="Cycloheximide") 
   format_headers = TRUE)
 
 
-## ----fig_1d---------------------------------------------------------------------------------------------------------------------------------------
+## ----fig_1d----------------------------------------------------------------------------------------
 length_distribution_files <- fs::dir_ls("sequencing/stats/length_distribution/", 
                         regexp = "\\.txt$")
 
@@ -283,13 +280,11 @@ read_lengths_hist_plot <- dist_plot_data %>%
   scale_y_continuous(breaks = c(20000000, 40000000, 60000000), labels = c("20 million", "40 million", "60 million")) +
   scale_x_continuous(breaks = 25:34) +
   theme_bw() +
-  theme(strip.background = element_rect(fill = "white"), legend.position = "bottom") +
+  theme(strip.background = element_rect(fill = "white"), legend.position = "bottom",axis.text.x= element_text(size=7)) +
   scale_fill_manual(values = c("#999999", "#0C7BDC"))
 
-read_lengths_hist_plot
-ggsave(plot = read_lengths_hist_plot, filename = paste(results_dir, "Figure 1d.png", sep = ""), width = 5, height = 5, device = "png", dpi = 700)
 
-## ----phasing_analysis-----------------------------------------------------------------------------------------------------------------------------
+## ----phasing_analysis------------------------------------------------------------------------------
 phasing_path <- "sequencing/plastid_analysis/merged/"
 
 riboseq_chx_phasing <- read_delim(paste0(phasing_path, "riboseq_chx_phasing.txt"),
@@ -329,30 +324,33 @@ rnaseq_phasing <- read_delim(paste0(phasing_path, "rnaseq_se_phasing.txt"),
   mutate(ribotype = "RNA-seq")
 
 paste0("___________________________________________________________________________________")
-paste0("                        Ribo-seq 28-31nt Phasing                     ")
+paste0("                        Cycloheximide Ribo-seq 28-31nt Phasing                     ")
 paste0("___________________________________________________________________________________")
-paste0("Approx. ", round(riboseq_chx_phasing$`0`*100), "% of CHX Ribo-seq reads are in phase")
+paste0("Approx. ", round(riboseq_chx_phasing$`0`*100), "% of reads are in phase")
 
-paste0("Approx. ", round(riboseq_harr_phasing$`0`*100), "% of HARR Ribo-seqreads are in phase")
-
-paste0("Approx. ", round(riboseq_nd_phasing$`0`*100), "% of ND Ribo-seq reads are in phase")
+paste0("__________________________________________________________________________________ ")
+paste0("                        Harringtonine Ribo-seq 28-31nt Phasing                     ")
 paste0("___________________________________________________________________________________")
+paste0("Approx. ", round(riboseq_harr_phasing$`0`*100), "% of reads are in phase")
 
-bind_rows(riboseq_chx_phasing, riboseq_harr_phasing, riboseq_nd_phasing, rnaseq_phasing) %>%
+paste0("__________________________________________________________________________________ ")
+paste0("                           No drug Ribo-seq 28-31nt Phasing phasing                ")
+paste0("___________________________________________________________________________________")
+paste0("Approx. ", round(riboseq_nd_phasing$`0`*100), "% of reads are in phase")
+
+phasing_plot <- bind_rows(riboseq_chx_phasing, riboseq_harr_phasing, riboseq_nd_phasing, rnaseq_phasing) %>%
   pivot_longer(cols = c(`0`, `1`, `2`), values_to = "Proportion") %>%
   mutate(ribotype = factor(ribotype, levels = c("Ribo-seq (HARR)", "Ribo-seq (CHX)", "Ribo-seq (ND)", "RNA-seq"))) %>%
   ggplot(aes(x = name, y = Proportion, fill = name)) +
   geom_bar(stat = "identity") +
   facet_wrap(~ribotype, ncol = 2) +
   labs(x = "Frame", y = "Proportion of RPFs", fill = "Frame") +
-  scale_fill_viridis(discrete = T) +
+  scale_fill_viridis(discrete = T, option = "C") +
   theme_bw() +
   theme(strip.background = element_rect(fill = "white"), legend.position = "bottom")
 
-ggsave(filename = paste(results_dir, "Figure 1e.png", sep = ""), width = 5, height = 5, device = "png", dpi = 700)
 
-
-## ----metagene_plot--------------------------------------------------------------------------------------------------------------------------------
+## ----metagene_plot---------------------------------------------------------------------------------
 chx_metagene <- read_tsv("orf_identification/orfrater/chx/metagene.txt", show_col_types = FALSE) %>%
   mutate(ribotype = "chx")
 
@@ -397,12 +395,7 @@ metagene <- metagene %>%
 
 labels <- c(chx = "Cycloheximide", harr = "Harringtonine", nd = "No drug")
 
-safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#332288", "#AA4499", 
-                             "#44AA99", "#999933", "#882255", "#661100", "#6699CC", "#888888")
-
-safe_colorblind_palette <- c("#661100", "#88CCEE")
-
-metagene %>%
+metagene_plot <- metagene %>%
     group_by(translation_type, position) %>%
   summarise(mean_at_position=mean(Means)) %>%
   mutate(Frame = case_when(
@@ -416,11 +409,19 @@ metagene %>%
   facet_wrap(~translation_type) +
   labs(y = "Averge RPF density", color = "Frame", x = "Transcript position") +
   theme_bw() +
-  scale_fill_viridis(discrete = T) +
+  scale_fill_viridis(discrete = T, option = "C") +
   guides(color = guide_legend(override.aes = list(linewidth = 4))) +
   theme(strip.background = element_rect(fill = "white"), legend.position = "bottom")
+  
+read_lengths_hist_plot + 
+  plot_spacer() + 
+  phasing_plot + 
+  plot_spacer() + 
+  metagene_plot + 
+  plot_layout(widths = c(5, 0.25 ,5, 0.25, 10))
 
-ggsave(filename = paste(results_dir, "Figure 1f.png", sep = ""), width = 6, height = 4, device = "png", dpi = 700)
+  ggsave(filename = paste(results_dir, "Figure 1def.png", sep = ""), 
+         width = 15, height = 4, device = "png", dpi = 2000)
 
 metagene %>%   
   mutate(ribotype = factor(ribotype, levels = c("Ribo-seq (HARR)", "Ribo-seq (CHX)", "Ribo-seq (ND)"))) %>%
@@ -430,14 +431,15 @@ metagene %>%
   facet_wrap(~ribotype, ncol=1) +
   theme_bw() +
   theme(legend.position = "bottom") +
-  scale_fill_viridis(discrete = T) +
+  scale_fill_viridis(discrete = T, option = "C") +
   guides(color = guide_legend(override.aes = list(linewidth = 4))) +
   theme(strip.background = element_rect(fill = "white"), legend.position = "bottom")
 
 
-ggsave(filename = paste(results_dir, "Supplementary Figure 3.png", sep = ""), width = 6, height = 8, device = "png", dpi = 700)
+ggsave(filename = paste(results_dir, "Supplementary Figure 3.png", sep = ""), 
+       width = 6, height = 8, device = "png", dpi = 2000)
 
 
-## -------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------------------------
 print("section 2.1 results complete")
 
