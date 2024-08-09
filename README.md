@@ -5,7 +5,7 @@
 
 The code contained in this repositority enable the reproduction of the results of:
 
-Castro-Rivadeneyra *et. al* 2024. **Annotation of the non-canonical translatome reveals that CHO cell microproteins are a new class of mAb drug product impurity**
+Tzani *et. al* 2024. **Annotation of the non-canonical translatome reveals that CHO cell microproteins are a new class of mAb drug product impurity**
 
 The publication is freely availiable here: xxxxxxx&nbsp;
 
