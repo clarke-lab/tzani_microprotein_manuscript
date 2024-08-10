@@ -1,7 +1,7 @@
  
 # Tzani *et al*. Microprotein Manuscript 
 
-[![DOI](https://zenodo.org/badge/449655379.svg)](https://zenodo.org/badge/latestdoi/449655379)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13285416.svg)](https://doi.org/10.5281/zenodo.13285416)
 
 The code contained in this repositority enable the reproduction of the results of:
 
